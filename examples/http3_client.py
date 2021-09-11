@@ -6,6 +6,8 @@ import pickle
 import ssl
 import socket    #DEBUG2 TEST*******************
 import time
+import paramiko #PERF EV AUTOMATION* 
+from threading import Thread #PERF EV AUTOMATION* 
 from collections import deque
 from typing import Callable, Deque, Dict, List, Optional, Union, cast
 from urllib.parse import urlparse
@@ -130,12 +132,12 @@ class HttpClient(QuicConnectionProtocol):
         else:
             self._http = H3Connection(self._quic)
 
-    async def get(self, url: str, counter:int,  headers: Dict = {} ) -> Deque[H3Event]:   #DEBUG2 TEST*
+    async def get(self, url: str, counter:int, hmstrategy:int, n_request_migration:int,  headers: Dict = {} ) -> Deque[H3Event]:   #DEBUG2 TEST* DEBUG V2* #PERF EV AUTOMATION*
         """ 
         Perform a GET request.
         """
         return await self._request(
-            HttpRequest(method="GET", url=URL(url), headers=headers), counter   #DEBUG2 TEST*
+            HttpRequest(method="GET", url=URL(url), headers=headers), counter, hmstrategy, n_request_migration   #DEBUG2 TEST* DEBUG V2* #PERF EV AUTOMATION*
         )
 
     async def post(self, url: str, data: bytes, headers: Dict = {}) -> Deque[H3Event]:
@@ -206,7 +208,7 @@ class HttpClient(QuicConnectionProtocol):
             for http_event in self._http.handle_event(event):
                 self.http_event_received(http_event)
 
-    async def _request(self, request: HttpRequest, counter:int ):    #DEBUG2 TEST*
+    async def _request(self, request: HttpRequest, counter:int, hmstrategy:int, n_request_migration:int ):    #DEBUG2 TEST* DEBUG V2* PERF EV AUTOMATION*
         stream_id = self._quic.get_next_available_stream_id()
         self._http.send_headers(
             stream_id=stream_id,
@@ -225,13 +227,13 @@ class HttpClient(QuicConnectionProtocol):
         self._request_events[stream_id] = deque()
         self._request_waiter[stream_id] = waiter
 
-        self.transmit(counter = counter)    #DEBUG2 TEST*
+        self.transmit(counter = counter, hmstrategy = hmstrategy, n_request_migration=n_request_migration)    #DEBUG2 TEST* DEBUG V2* PERF EV AUTOMATION*
 
         return await asyncio.shield(waiter)
 
 
 async def perform_http_request(
-    client: HttpClient, url: str, data: str, include: bool, output_dir: Optional[str], counter = int #DEBUG2 TEST*     
+    client: HttpClient, url: str, data: str, include: bool, output_dir: Optional[str], counter = int, hmstrategy = int, n_request_migration = int #DEBUG2 TEST* DEBUG V2* PERF EV AUTOMATION*   
 ) -> None: 
     # perform request
     start = time.time()
@@ -242,7 +244,7 @@ async def perform_http_request(
             headers={"content-type": "application/x-www-form-urlencoded"},
         )
     else:
-        http_events = await client.get(url, counter)   #DEBUG2 TEST*
+        http_events = await client.get(url, counter, hmstrategy, n_request_migration)   #DEBUG2 TEST* DEBUG V2* PERF EV AUTOMATION*
     elapsed = time.time() - start
 
     # print speed
@@ -293,6 +295,8 @@ async def run(
     zero_rtt: bool,
     n_requests:int, #DEBUG V2
     hmstrategy:int, #DEBUG V2*
+    mtype:int, #PERF EV AUTOMATION*
+    n_request_migration:int, #PERF EV AUTOMATION*
 ) -> None:
     # parse URL
     parsed = urlparse(urls[0])
@@ -333,7 +337,7 @@ async def run(
             await ws.close()
         else:
 
-            #DEBUG2 TEST*******************     DA SPOSTARE DA QUALCHE PARTE A PIù BASSO LIVELLO
+            #DEBUG2 TEST******************* 
             hostname = socket.gethostname()
             ip_address = socket.gethostbyname(hostname)
             print(f"Hostname: {hostname}")
@@ -343,7 +347,18 @@ async def run(
             # perform request
             cont = 0        #DEBUG*
             while(cont < n_requests):  #DEBUG V2
+                
+                #PERF EV AUTOMATION*****
+                if(cont==n_request_migration):
+                    print("RUN COMMAND TO START MIGRATION")
+                    t1 = Thread(target=ssh_command, args=(mtype,))
+                    t1.start()
+                    #ssh_command(mtype)
+                #PERF EV AUTOMATION***** 
+
+                print("CLIENT IS SLEEPING")
                 await asyncio.sleep(5)  #DEBUG*
+                
                 coros = [
                     perform_http_request(
                         client=client,
@@ -352,12 +367,45 @@ async def run(
                         include=include,
                         output_dir=output_dir,
                         counter = cont, #DEBUG2 TEST*
-                        hmstrategy = hmstrategy #DEBUG V2*
+                        hmstrategy = hmstrategy, #DEBUG V2*
+                        n_request_migration = n_request_migration #PERF EV AUTOMATION* 
                     )
                     for url in urls
                 ]
                 await asyncio.gather(*coros)
                 cont+=1 #DEBUG*
+
+
+#PERF EV AUTOMATION******
+def ssh_command(mtype:int) -> None:
+
+    client_ssh = paramiko.SSHClient()
+    client_ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    client_ssh.connect('172.16.4.4', username='ubuntu', password='tesiconforti')
+
+    command = "sudo python master/migrate_from_shell.py python_bundle 172.16.4.232"
+    if(mtype == 0):
+        command = command + " false false"  #cold migration
+    elif(mtype == 1):
+        command = command + " true false"   #pre-copy migration
+    elif(mtype == 2):
+        command = command + " false true"   #post-copy migration
+    elif(mtype == 3):
+        command = command + " true true"    #hybrid migration
+
+    stdin, stdout, stderr = client_ssh.exec_command(command)
+
+    #time.sleep(0.1) #Added in order to resolve an error of paramiko library
+
+    for line in stdout:
+        print (line.strip('\n'))
+
+    for line_err in stderr:
+        print (line_err.strip('\n'))
+
+    client_ssh.close()
+
+#PERF EV AUTOMATION******
 
 
 if __name__ == "__main__":
@@ -431,7 +479,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--zero-rtt", action="store_true", help="try to send requests using 0-RTT"
     )
-    #DEBUG V2*
+    #DEBUG V2*****
     parser.add_argument(
         "--handle_migration_strategy",
         type=int,
@@ -443,7 +491,20 @@ if __name__ == "__main__":
         type=int,
         help="number of requests made by Client to Server during the connection",
     )
-    #DEBUG V2*
+    #DEBUG V2*****
+    #PERF EV AUTOMATION******
+    parser.add_argument(
+        "--migration_type",
+        type=int,
+        help="Type of container migration for the server: 0 = cold, 1 = pre-copy, 2 = post-copy, 3 = hybrid",
+    )
+    parser.add_argument(
+        "--n_request_migration",
+        type=int,
+        help="At what request from C to S the command to start the migration of the S should be run",
+    )
+    #PERF EV AUTOMATION******
+
 
     args = parser.parse_args()
 
@@ -482,24 +543,28 @@ if __name__ == "__main__":
         except FileNotFoundError:
             pass
 
-    #DEBUG V2
+    #DEBUG V2*****
     if args.data is not None and args.handle_migration_strategy is None:
         print("You have to insert the migration strategy")
         sys.exit()
-    #DEBUG V2
-
-    #DEBUG V2
     if args.handle_migration_strategy < 0 or args.handle_migration_strategy > 1:
         print("You have to insert the correct type of migration strategy: 1-FAST: as soon as ack sent --- 0:SLOW: after the first packet lost")
         sys.exit()
-    #DEBUG 
-
-    #DEBUG V2
     if args.data is not None and args.n_requests is None:
         print("You have to insert the number of requests made by C to S during the connection")
         sys.exit()
-    #DEBUG V2
-
+    #DEBUG V2*****
+    #PERF EV AUTOMATION******
+    if args.data is not None and args.migration_type is None:
+        print("You have to insert the type of container migration")
+        sys.exit()
+    if args.migration_type < 0 or args.migration_type > 3:
+        print("You have to insert the correct type of container migration: 0 = cold, 1 = pre-copy, 2 = post-copy, 3 = hybrid")
+        sys.exit()
+    if args.n_request_migration < 1 or args.n_request_migration >= args.n_requests:
+        print("The value of the request when the migration of the S should start has to be greater than 1 (in the request before C receives new S address) and less the number of requests in the whole connection")
+        sys.exit()
+    #PERF EV AUTOMATION******
 
     if uvloop is not None:
         uvloop.install()
@@ -515,5 +580,7 @@ if __name__ == "__main__":
             zero_rtt=args.zero_rtt,
             n_requests = args.n_requests,   #DEBUG V2*
             hmstrategy = args.handle_migration_strategy,   #DEBUG V2*
+            mtype = args.migration_type, #PERF EV AUTOMATION*
+            n_request_migration = args.n_request_migration, #PERF EV AUTOMATION*
         )
     )

@@ -470,7 +470,7 @@ class QuicConnection:
         self._version = self._configuration.supported_versions[0]
         self._connect(now=now)
 
-    def datagrams_to_send(self, counter: int, hmstrategy: int, now: float) -> List[Tuple[bytes, NetworkAddress]]:  #DEBUG2 TEST DEBUG V2*        
+    def datagrams_to_send(self, counter: int, hmstrategy: int, n_request_migration:int now: float) -> List[Tuple[bytes, NetworkAddress]]:  #DEBUG2 TEST DEBUG V2* PERF EV AUTOMATION*      
         """
         Return a list of `(data, addr)` tuples of datagrams which need to be
         sent, and the network address to which they need to be sent.
@@ -534,7 +534,7 @@ class QuicConnection:
                 if not self._handshake_confirmed:
                     for epoch in [tls.Epoch.INITIAL, tls.Epoch.HANDSHAKE]:
                         self._write_handshake(builder, epoch, now)
-                self._write_application(builder, network_path, now, counter, hmstrategy) #DEBUG2 TEST DEBUG V2*
+                self._write_application(builder, network_path, now, counter, hmstrategy, n_request_migration) #DEBUG2 TEST DEBUG V2* PERF EV AUTOMATION*
             except QuicPacketBuilderStop:
                 pass
 
@@ -2582,7 +2582,7 @@ class QuicConnection:
             )
 
     def _write_application(
-        self, builder: QuicPacketBuilder, network_path: QuicNetworkPath, now: float, counter: int, hmstrategy: int   #DEBUG2 TEST DEBUG V2*
+        self, builder: QuicPacketBuilder, network_path: QuicNetworkPath, now: float, counter: int, hmstrategy: int, n_request_migration:int   #DEBUG2 TEST DEBUG V2* PERF EV AUTOMATION*
     ) -> None:
         crypto_stream: Optional[QuicStream] = None
         if self._cryptos[tls.Epoch.ONE_RTT].send.is_valid():
@@ -2665,16 +2665,17 @@ class QuicConnection:
                 # MAX_DATA and MAX_STREAMS
                 self._write_connection_limits(builder=builder, space=space)
 
-                #DEBUG2 TEST*********************
-                #Condition for triggering
-                if counter == 2 and self._first_time_trigger:
-                    self._trigger_period = True
-                    self._first_time_trigger = False
-
                 #DEBUG V2*********************
                 #Type of migration strategy
-                if hmstrategy == 1:
+                if hmstrategy == 1 and not self._migration_strategy_fast:
                     self._migration_strategy_fast = True
+                #DEBUG V2*********************
+
+                #DEBUG2 TEST*********************
+                #Condition for triggering
+                if counter == n_request_migration-1 and self._first_time_trigger:
+                    self._trigger_period = True
+                    self._first_time_trigger = False
 
                 #TRIGGER
                 if self._is_client and self._trigger_period:
@@ -2683,7 +2684,6 @@ class QuicConnection:
                 #DEBUG2 TEST*********************
 
                 #DEBUG2*********************
-
                 #SERVER MIGRATION
                 if not self._is_client and self._server_triggered_to_migrate:
                     self._write_server_migration_frame(builder=builder) #For test case ip address of server inside function

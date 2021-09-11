@@ -470,7 +470,7 @@ class QuicConnection:
         self._version = self._configuration.supported_versions[0]
         self._connect(now=now)
 
-    def datagrams_to_send(self, counter: int, mstrategy: int, now: float) -> List[Tuple[bytes, NetworkAddress]]:  #DEBUG2 TEST DEBUG V2*        
+    def datagrams_to_send(self, counter: int, hmstrategy: int, now: float) -> List[Tuple[bytes, NetworkAddress]]:  #DEBUG2 TEST DEBUG V2*        
         """
         Return a list of `(data, addr)` tuples of datagrams which need to be
         sent, and the network address to which they need to be sent.
@@ -534,7 +534,7 @@ class QuicConnection:
                 if not self._handshake_confirmed:
                     for epoch in [tls.Epoch.INITIAL, tls.Epoch.HANDSHAKE]:
                         self._write_handshake(builder, epoch, now)
-                self._write_application(builder, network_path, now, counter, mstrategy) #DEBUG2 TEST DEBUG V2*
+                self._write_application(builder, network_path, now, counter, hmstrategy) #DEBUG2 TEST DEBUG V2*
             except QuicPacketBuilderStop:
                 pass
 
@@ -2582,7 +2582,7 @@ class QuicConnection:
             )
 
     def _write_application(
-        self, builder: QuicPacketBuilder, network_path: QuicNetworkPath, now: float, counter: int, mstrategy: int   #DEBUG2 TEST DEBUG V2*
+        self, builder: QuicPacketBuilder, network_path: QuicNetworkPath, now: float, counter: int, hmstrategy: int   #DEBUG2 TEST DEBUG V2*
     ) -> None:
         crypto_stream: Optional[QuicStream] = None
         if self._cryptos[tls.Epoch.ONE_RTT].send.is_valid():
@@ -2673,7 +2673,7 @@ class QuicConnection:
 
                 #DEBUG V2*********************
                 #Type of migration strategy
-                if mstrategy == 1:
+                if hmstrategy == 1:
                     self._migration_strategy_fast = True
 
                 #TRIGGER

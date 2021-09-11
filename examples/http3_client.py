@@ -291,7 +291,8 @@ async def run(
     output_dir: Optional[str],
     local_port: int,
     zero_rtt: bool,
-    mstrategy:int, #DEBUG V2*
+    n_requests:int, #DEBUG V2
+    hmstrategy:int, #DEBUG V2*
 ) -> None:
     # parse URL
     parsed = urlparse(urls[0])
@@ -341,7 +342,7 @@ async def run(
 
             # perform request
             cont = 0        #DEBUG*
-            while(cont < 5):  #DEBUG*
+            while(cont < n_requests):  #DEBUG V2
                 await asyncio.sleep(5)  #DEBUG*
                 coros = [
                     perform_http_request(
@@ -351,7 +352,7 @@ async def run(
                         include=include,
                         output_dir=output_dir,
                         counter = cont, #DEBUG2 TEST*
-                        mstrategy = mstrategy #DEBUG V2*
+                        hmstrategy = hmstrategy #DEBUG V2*
                     )
                     for url in urls
                 ]
@@ -436,6 +437,12 @@ if __name__ == "__main__":
         type=int,
         help="Strategy to decide how handle the migration of the server at the client side: 1-FAST: as soon as ack sent --- 0:SLOW: after the first packet lost",
     )
+    parser.add_argument(
+        "-n",
+        "--n_requests",
+        type=int,
+        help="number of requests made by Client to Server during the connection",
+    )
     #DEBUG V2*
 
     args = parser.parse_args()
@@ -476,14 +483,20 @@ if __name__ == "__main__":
             pass
 
     #DEBUG V2
-    if args.data is not None and args.mstrategy is None:
+    if args.data is not None and args.handle_migration_strategy is None:
         print("You have to insert the migration strategy")
         sys.exit()
     #DEBUG V2
 
     #DEBUG V2
-    if args.mstrategy < 0 or args.mstrategy > 1:
+    if args.handle_migration_strategy < 0 or args.handle_migration_strategy > 1:
         print("You have to insert the correct type of migration strategy: 1-FAST: as soon as ack sent --- 0:SLOW: after the first packet lost")
+        sys.exit()
+    #DEBUG 
+
+    #DEBUG V2
+    if args.data is not None and args.n_requests is None:
+        print("You have to insert the number of requests made by C to S during the connection")
         sys.exit()
     #DEBUG V2
 
@@ -500,6 +513,7 @@ if __name__ == "__main__":
             output_dir=args.output_dir,
             local_port=args.local_port,
             zero_rtt=args.zero_rtt,
-            mstrategy = args.mstrategy,   #DEBUG V2*
+            n_requests = args.n_requests,   #DEBUG V2*
+            hmstrategy = args.handle_migration_strategy,   #DEBUG V2*
         )
     )

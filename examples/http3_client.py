@@ -291,6 +291,7 @@ async def run(
     output_dir: Optional[str],
     local_port: int,
     zero_rtt: bool,
+    mstrategy:int, #DEBUG V2*
 ) -> None:
     # parse URL
     parsed = urlparse(urls[0])
@@ -349,7 +350,8 @@ async def run(
                         data=data,
                         include=include,
                         output_dir=output_dir,
-                        counter = cont #DEBUG2 TEST*
+                        counter = cont, #DEBUG2 TEST*
+                        mstrategy = mstrategy #DEBUG V2*
                     )
                     for url in urls
                 ]
@@ -428,6 +430,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--zero-rtt", action="store_true", help="try to send requests using 0-RTT"
     )
+    #DEBUG V2*
+    parser.add_argument(
+        "--handle_migration_strategy",
+        type=int,
+        help="Strategy to decide how handle the migration of the server at the client side: 1-FAST: as soon as ack sent --- 0:SLOW: after the first packet lost",
+    )
+    #DEBUG V2*
 
     args = parser.parse_args()
 
@@ -466,6 +475,19 @@ if __name__ == "__main__":
         except FileNotFoundError:
             pass
 
+    #DEBUG V2
+    if args.data is not None and args.mstrategy is None:
+        print("You have to insert the migration strategy")
+        sys.exit()
+    #DEBUG V2
+
+    #DEBUG V2
+    if args.mstrategy < 0 or args.mstrategy > 1:
+        print("You have to insert the correct type of migration strategy: 1-FAST: as soon as ack sent --- 0:SLOW: after the first packet lost")
+        sys.exit()
+    #DEBUG V2
+
+
     if uvloop is not None:
         uvloop.install()
     loop = asyncio.get_event_loop()
@@ -478,5 +500,6 @@ if __name__ == "__main__":
             output_dir=args.output_dir,
             local_port=args.local_port,
             zero_rtt=args.zero_rtt,
+            mstrategy = args.mstrategy,   #DEBUG V2*
         )
     )

@@ -324,6 +324,8 @@ class QuicConnection:
         self._server_migration_address: Optional[QuicNetworkPath] = None  #DEBUG2*
         self._trigger_period = False #DEBUG2 TEST*
         self._first_time_trigger = True #DEBUG2 TEST*
+        self._migration_strategy_fast = False #DEBUG V2*
+        self._change_addr_fast = False #DEBUG V2*
 
         if self._is_client:
             self._original_destination_connection_id = self._peer_cid.cid
@@ -468,7 +470,7 @@ class QuicConnection:
         self._version = self._configuration.supported_versions[0]
         self._connect(now=now)
 
-    def datagrams_to_send(self, counter: int, now: float) -> List[Tuple[bytes, NetworkAddress]]:  #DEBUG2 TEST*
+    def datagrams_to_send(self, counter: int, mstrategy: int, now: float) -> List[Tuple[bytes, NetworkAddress]]:  #DEBUG2 TEST DEBUG V2*        
         """
         Return a list of `(data, addr)` tuples of datagrams which need to be
         sent, and the network address to which they need to be sent.
@@ -532,7 +534,7 @@ class QuicConnection:
                 if not self._handshake_confirmed:
                     for epoch in [tls.Epoch.INITIAL, tls.Epoch.HANDSHAKE]:
                         self._write_handshake(builder, epoch, now)
-                self._write_application(builder, network_path, now, counter) #DEBUG2 TEST*
+                self._write_application(builder, network_path, now, counter, mstrategy) #DEBUG2 TEST DEBUG V2*
             except QuicPacketBuilderStop:
                 pass
 
@@ -584,6 +586,7 @@ class QuicConnection:
             byte_length = len(datagram)
             network_path.bytes_sent += byte_length
 
+            '''
             #DEBUG2*************
             
             if self._is_client and self._loss._pto_count > 2 and self._server_migration_address is not None:    
@@ -592,6 +595,28 @@ class QuicConnection:
                 ret.append((datagram, network_path.addr))
 
             #DEBUG2*************
+            '''
+
+            #DEBUG2 DEBUG V2*************
+            
+            if self._is_client and not self._change_addr_fast and self._loss._pto_count > 1 and self._server_migration_address is not None:    
+                ret.append((datagram,self._server_migration_address.addr))
+            else:
+                ret.append((datagram, network_path.addr))
+
+            #DEBUG2 DEBUG V2*************
+
+            #DEBUG V2***********
+            
+            if self._is_client and self._change_addr_fast and self._server_migration_address is not None:  
+                network_path_server_migration = self._find_network_path(self._server_migration_address)
+                idx = self._network_paths.index(network_path_server_migration)
+                if idx and not network_path_server_migration == self._previous_server_address:
+                    self._network_paths.pop(idx)
+                    self._network_paths.insert(0, network_path_server_migration)
+
+            #DEBUG V2***********
+
 
             if self._quic_logger is not None:
                 self._quic_logger.log_event(
@@ -1878,6 +1903,11 @@ class QuicConnection:
         if network_path not in self._network_paths:
             self._network_paths.append(network_path)
 
+        #DEBUG V2
+        if self._migration_strategy_fast:
+            self._change_addr_fast = True
+        #DEBUG V2
+
         self._previous_server_address = context.network_path
         self._server_migration_address = network_path
         
@@ -2552,7 +2582,7 @@ class QuicConnection:
             )
 
     def _write_application(
-        self, builder: QuicPacketBuilder, network_path: QuicNetworkPath, now: float, counter: int   #DEBUG2 TEST*
+        self, builder: QuicPacketBuilder, network_path: QuicNetworkPath, now: float, counter: int, mstrategy: int   #DEBUG2 TEST DEBUG V2*
     ) -> None:
         crypto_stream: Optional[QuicStream] = None
         if self._cryptos[tls.Epoch.ONE_RTT].send.is_valid():
@@ -2640,6 +2670,11 @@ class QuicConnection:
                 if counter == 2 and self._first_time_trigger:
                     self._trigger_period = True
                     self._first_time_trigger = False
+
+                #DEBUG V2*********************
+                #Type of migration strategy
+                if mstrategy == 1:
+                    self._migration_strategy_fast = True
 
                 #TRIGGER
                 if self._is_client and self._trigger_period:

@@ -3,6 +3,7 @@ import logging
 import os
 import sys  #DEBUG2**************
 import ipaddress #DEBUG2**************
+import time #PERF EV TIME INFO*
 from collections import deque
 from dataclasses import dataclass
 from enum import Enum
@@ -326,6 +327,8 @@ class QuicConnection:
         self._first_time_trigger = True #DEBUG2 TEST*
         self._migration_strategy_fast = False #DEBUG V2*
         self._change_addr_fast = False #DEBUG V2*
+        self._initial_timestamp = 0 #PERF EV TIME INFO*
+        self._final_timestamp = 0 #PERF EV TIME INFO*
 
         if self._is_client:
             self._original_destination_connection_id = self._peer_cid.cid
@@ -481,6 +484,19 @@ class QuicConnection:
         :param now: The current time.
         """
 
+        #PERF EV TIME INFO****
+        if self._is_client and  not self._change_addr_fast and self._loss._pto_count == 1 and self._final_timestamp == 0:
+            print("PRENDO TEMPO INIZIALE")
+            self._initial_timestamp = time.time()
+        
+        if self._is_client and self._change_addr_fast and self._server_migration_address is not None and self._final_timestamp == 0:  
+            network_path_server_migration = self._find_network_path(self._server_migration_address)
+            idx = self._network_paths.index(network_path_server_migration)
+            if idx == 0:
+                print("PRENDO TEMPO INIZIALE")
+                self._initial_timestamp = time.time()
+        #PERF EV TIME INFO****
+
         network_path = self._network_paths[0]
 
         if self._state in END_STATES:
@@ -599,7 +615,7 @@ class QuicConnection:
 
             #DEBUG2 DEBUG V2*************
             
-            if self._is_client and not self._change_addr_fast and self._loss._pto_count > 1 and self._server_migration_address is not None:    
+            if self._is_client and not self._change_addr_fast and self._loss._pto_count > 0 and self._server_migration_address is not None:    
                 ret.append((datagram,self._server_migration_address.addr))
             else:
                 ret.append((datagram, network_path.addr))
@@ -709,7 +725,7 @@ class QuicConnection:
         if self._state in END_STATES:
             return
 
-        #DEBUG*****************************
+        '''
         print("PROCESS REGULAR PACKET FROM ") #DEBUG*
         print(addr)
         print("DESTINATION CID ") #DEBUG*
@@ -724,8 +740,11 @@ class QuicConnection:
         for elem_path in self._network_paths:   #DEBUG*
             print("LIST OF PATH")
             print(elem_path)  #DEBUG*
-        #DEBUG*****************************
-        
+        '''
+        #PERF EV TIME INFO****
+        if not self._is_client and self._initial_timestamp == 0:
+            self._initial_timestamp = time.time()
+        #PERF EV TIME INFO****
 
 
         if self._quic_logger is not None:
@@ -1021,6 +1040,13 @@ class QuicConnection:
             if idx and not network_path == self._previous_server_address and not is_probing and packet_number > space.largest_received_packet:  #DEBUG2 TEST*
                 self._network_paths.pop(idx)
                 self._network_paths.insert(0, network_path)
+                #PERF EV TIME INFO****
+                if self._is_client and self._initial_timestamp != 0:
+                    self._final_timestamp = time.time()
+                    print("DELTA SERVER MIGRATION:")
+                    print(self._final_timestamp - self._initial_timestamp)
+                #PERF EV TIME INFO****
+
 
             # record packet as received
             if not space.discarded:
@@ -1432,6 +1458,13 @@ class QuicConnection:
                     reason_phrase=reason_phrase,
                 )
             )
+
+        #PERF EV TIME INFO****
+        if not self._is_client and self._initial_timestamp != 0:
+            self._final_timestamp = time.time()
+            print("TIME OF THE ALL CONNECTION")
+            print(self._final_timestamp - self._initial_timestamp)
+        #PERF EV TIME INFO****
 
         self._logger.info(
             "Connection close code 0x%X, reason %s", error_code, reason_phrase

@@ -3,6 +3,7 @@ import asyncio
 import importlib
 import logging
 import time
+import sys
 from collections import deque
 from email.utils import formatdate
 from typing import Callable, Deque, Dict, List, Optional, Union, cast
@@ -405,7 +406,30 @@ if __name__ == "__main__":
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="increase logging verbosity"
     )
+    #PERF EV AUTOMATION V2******
+    parser.add_argument(
+        "--migration_type",
+        type=int,
+        help="Type of container migration for the server: 0 = cold, 1 = pre-copy, 2 = post-copy, 3 = hybrid",
+    )
+    #PERF EV AUTOMATION V2******
+
+
     args = parser.parse_args()
+
+
+    #PERF EV AUTOMATION V2******
+    if args.migration_type is None:
+        print("You have to insert the type of container migration")
+        sys.exit()
+    if args.migration_type < 0 or args.migration_type > 3:
+        print("You have to insert the correct type of container migration: 0 = cold, 1 = pre-copy, 2 = post-copy, 3 = hybrid")
+        sys.exit()
+
+    f = open("src/aioquic/quic/MigrationInformation.txt", "a")
+    f.write(str(args.migration_type))
+    f.close()
+    #PERF EV AUTOMATION V2******
 
     logging.basicConfig(
         format="%(asctime)s %(levelname)s %(name)s %(message)s",

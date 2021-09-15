@@ -6,8 +6,6 @@ import pickle
 import ssl
 import socket    #DEBUG2 TEST*******************
 import time
-import paramiko #PERF EV AUTOMATION* 
-from threading import Thread #PERF EV AUTOMATION* 
 from collections import deque
 from typing import Callable, Deque, Dict, List, Optional, Union, cast
 from urllib.parse import urlparse
@@ -295,7 +293,6 @@ async def run(
     zero_rtt: bool,
     n_requests:int, #DEBUG V2
     hmstrategy:int, #DEBUG V2*
-    mtype:int, #PERF EV AUTOMATION*
     n_request_migration:int, #PERF EV AUTOMATION*
 ) -> None:
     # parse URL
@@ -337,24 +334,9 @@ async def run(
             await ws.close()
         else:
 
-            #DEBUG2 TEST******************* 
-            hostname = socket.gethostname()
-            ip_address = socket.gethostbyname(hostname)
-            print(f"Hostname: {hostname}")
-            print(f"IP Address: {ip_address}")
-            #DEBUG2 TEST*******************
-
             # perform request
             cont = 0        #DEBUG*
             while(cont < n_requests):  #DEBUG V2
-                
-                #PERF EV AUTOMATION*****
-                if(cont==n_request_migration):
-                    print("RUN COMMAND TO START MIGRATION")
-                    t1 = Thread(target=ssh_command, args=(mtype,))
-                    t1.start()
-                    #ssh_command(mtype)
-                #PERF EV AUTOMATION***** 
 
                 print("CLIENT IS SLEEPING")
                 await asyncio.sleep(5)  #DEBUG*
@@ -374,38 +356,6 @@ async def run(
                 ]
                 await asyncio.gather(*coros)
                 cont+=1 #DEBUG*
-
-
-#PERF EV AUTOMATION******
-def ssh_command(mtype:int) -> None:
-
-    client_ssh = paramiko.SSHClient()
-    client_ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client_ssh.connect('172.16.4.4', username='ubuntu', password='tesiconforti')
-
-    command = "sudo python master/migrate_from_shell.py python_bundle 172.16.4.232"
-    if(mtype == 0):
-        command = command + " false false"  #cold migration
-    elif(mtype == 1):
-        command = command + " true false"   #pre-copy migration
-    elif(mtype == 2):
-        command = command + " false true"   #post-copy migration
-    elif(mtype == 3):
-        command = command + " true true"    #hybrid migration
-
-    stdin, stdout, stderr = client_ssh.exec_command(command)
-
-    #time.sleep(0.1) #Added in order to resolve an error of paramiko library
-
-    for line in stdout:
-        print (line.strip('\n'))
-
-    for line_err in stderr:
-        print (line_err.strip('\n'))
-
-    client_ssh.close()
-
-#PERF EV AUTOMATION******
 
 
 if __name__ == "__main__":
@@ -494,11 +444,6 @@ if __name__ == "__main__":
     #DEBUG V2*****
     #PERF EV AUTOMATION******
     parser.add_argument(
-        "--migration_type",
-        type=int,
-        help="Type of container migration for the server: 0 = cold, 1 = pre-copy, 2 = post-copy, 3 = hybrid",
-    )
-    parser.add_argument(
         "--n_request_migration",
         type=int,
         help="At what request from C to S the command to start the migration of the S should be run",
@@ -555,12 +500,6 @@ if __name__ == "__main__":
         sys.exit()
     #DEBUG V2*****
     #PERF EV AUTOMATION******
-    if args.data is not None and args.migration_type is None:
-        print("You have to insert the type of container migration")
-        sys.exit()
-    if args.migration_type < 0 or args.migration_type > 3:
-        print("You have to insert the correct type of container migration: 0 = cold, 1 = pre-copy, 2 = post-copy, 3 = hybrid")
-        sys.exit()
     if args.n_request_migration < 1 or args.n_request_migration >= args.n_requests:
         print("The value of the request when the migration of the S should start has to be greater than 1 (in the request before C receives new S address) and less the number of requests in the whole connection")
         sys.exit()
@@ -580,7 +519,6 @@ if __name__ == "__main__":
             zero_rtt=args.zero_rtt,
             n_requests = args.n_requests,   #DEBUG V2*
             hmstrategy = args.handle_migration_strategy,   #DEBUG V2*
-            mtype = args.migration_type, #PERF EV AUTOMATION*
             n_request_migration = args.n_request_migration, #PERF EV AUTOMATION*
         )
     )

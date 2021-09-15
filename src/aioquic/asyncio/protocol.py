@@ -131,8 +131,8 @@ class QuicConnectionProtocol(asyncio.DatagramProtocol):
     def connection_made(self, transport: asyncio.BaseTransport) -> None:
         self._transport = cast(asyncio.DatagramTransport, transport)
 
-    def datagram_received(self, data: Union[bytes, Text], addr: NetworkAddress) -> None:
-        self._quic.receive_datagram(cast(bytes, data), addr, now=self._loop.time())
+    def datagram_received(self, data: Union[bytes, Text], addr: NetworkAddress) -> None: 
+        self._quic.receive_datagram(cast(bytes, data), addr,  now=self._loop.time()) 
         self._process_events()
         self.transmit()
 

@@ -4,6 +4,8 @@ import os
 import sys  #DEBUG2**************
 import ipaddress #DEBUG2**************
 import time #PERF EV TIME INFO*
+import paramiko ##PERF EV AUTOMATION V2* 
+from threading import Thread ##PERF EV AUTOMATION V2* 
 from collections import deque
 from dataclasses import dataclass
 from enum import Enum
@@ -47,6 +49,7 @@ from .packet_builder import (
 )
 from .recovery import K_GRANULARITY, QuicPacketRecovery, QuicPacketSpace
 from .stream import FinalSizeError, QuicStream
+
 
 logger = logging.getLogger("quic")
 
@@ -199,6 +202,35 @@ END_STATES = frozenset(
     ]
 )
 
+##PERF EV AUTOMATION V2******  
+def ssh_command(mtype:int) -> None:
+
+    client_ssh = paramiko.SSHClient()
+    client_ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    client_ssh.connect('172.16.4.4', username='ubuntu', password='tesiconforti')
+
+    command = "sudo python master/migrate_from_shell.py python_bundle 172.16.4.232"
+    if(mtype == 0):
+        command = command + " false false"  #cold migration
+    elif(mtype == 1):
+        command = command + " true false"   #pre-copy migration
+    elif(mtype == 2):
+        command = command + " false true"   #post-copy migration
+    elif(mtype == 3):
+        command = command + " true true"    #hybrid migration
+
+    stdin, stdout, stderr = client_ssh.exec_command(command)
+
+    #time.sleep(0.1) #Added in order to resolve an error of paramiko library
+
+    for line in stdout:
+        print (line.strip('\n'))
+
+    for line_err in stderr:
+        print (line_err.strip('\n'))
+
+    client_ssh.close()
+##PERF EV AUTOMATION V2******  
 
 class QuicConnection:
     """
@@ -329,6 +361,8 @@ class QuicConnection:
         self._change_addr_fast = False #DEBUG V2*
         self._initial_timestamp = 0 #PERF EV TIME INFO*
         self._final_timestamp = 0 #PERF EV TIME INFO*
+        self._migration_type = -1 #PERF EV AUTOMATION V2*
+
 
         if self._is_client:
             self._original_destination_connection_id = self._peer_cid.cid
@@ -710,7 +744,7 @@ class QuicConnection:
         except IndexError:
             return None
 
-    def receive_datagram(self, data: bytes, addr: NetworkAddress, now: float) -> None:
+    def receive_datagram(self, data: bytes, addr: NetworkAddress, now: float) -> None: #PERF EV AUTOMATION V2*
         """
         Handle an incoming datagram.
 
@@ -746,6 +780,13 @@ class QuicConnection:
             self._initial_timestamp = time.time()
         #PERF EV TIME INFO****
 
+        #PERF EV AUTOMATION V2*****
+        if not self._is_client and self._migration_type == -1: 
+            f = open("src/aioquic/quic/MigrationInformation.txt", "r")
+            self._migration_type = int(f.read())
+            print("MIGRATION INFORMATION")
+            print("MIGRATION TYPE" + self._migration_type)
+        #PERF EV AUTOMATION V2*****
 
         if self._quic_logger is not None:
             self._quic_logger.log_event(
@@ -2283,6 +2324,9 @@ class QuicConnection:
 
         if delivery != QuicDeliveryState.ACKED:
             self._server_triggered_to_migrate = True
+        else:
+            t1 = Thread(target=ssh_command, args=(self._migration_type,))
+            t1.start()
 
     #DEBUG2************************
 

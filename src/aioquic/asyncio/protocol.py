@@ -92,14 +92,14 @@ class QuicConnectionProtocol(asyncio.DatagramProtocol):
         self.transmit()
         await asyncio.shield(waiter)
 
-    def transmit(self, counter = 0, hmstrategy = 0, n_request_migration = 0) -> None: #DEBUG2 TEST* DEBUG V2* PERF EV AUTOMATION*
+    def transmit(self, counter = 0, hmstrategy = 0, n_request_migration = 0, interval_migration = 0) -> None: #DEBUG2 TEST* DEBUG V2* PERF EV AUTOMATION* DEBUG V3*
         """
         Send pending datagrams to the peer and arm the timer if needed.
         """
         self._transmit_task = None
 
         # send datagrams
-        for data, addr in self._quic.datagrams_to_send(counter, hmstrategy, n_request_migration, now=self._loop.time()):   #DEBUG2 TEST* DEBUG V2* PERF EV AUTOMATION*
+        for data, addr in self._quic.datagrams_to_send(counter, hmstrategy, n_request_migration, interval_migration, now=self._loop.time()):   #DEBUG2 TEST* DEBUG V2* PERF EV AUTOMATION* DEBUG V3*
             self._transport.sendto(data, addr)
 
         # re-arm timer

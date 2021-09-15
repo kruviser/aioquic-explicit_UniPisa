@@ -413,7 +413,14 @@ if __name__ == "__main__":
         help="Type of container migration for the server: 0 = cold, 1 = pre-copy, 2 = post-copy, 3 = hybrid",
     )
     #PERF EV AUTOMATION V2******
-
+    #DEBUG V3******
+    parser.add_argument(
+        "--server_addresses",
+        type=str,
+        required=True,
+        help="List of server addresses divided by comma",
+    )
+    #DEBUG V3******
 
     args = parser.parse_args()
 
@@ -426,10 +433,18 @@ if __name__ == "__main__":
         print("You have to insert the correct type of container migration: 0 = cold, 1 = pre-copy, 2 = post-copy, 3 = hybrid")
         sys.exit()
 
+    #DEBUG V3****       #FOR NOW FIRST ADDRESS SHOULD BE THE ONE TO WHICH SERVER WILL MIGRATE
+    server_addr = args.server_addresses.split(",")
+    if len(server_addr)!=2:
+        print("You have to insert two addresses for the server, the one where it runs and the one to which it migrates")
+        sys.exit()
+
     f = open("src/aioquic/quic/MigrationInformation.txt", "a")
     f.write(str(args.migration_type))
+    f.write(str(server_addr[0]))
+    f.write(str(server_addr[1]))
     f.close()
-    #PERF EV AUTOMATION V2******
+    #PERF EV AUTOMATION V2****** #DEBUG V3*****
 
     logging.basicConfig(
         format="%(asctime)s %(levelname)s %(name)s %(message)s",

@@ -4,8 +4,8 @@ import os
 import sys  #DEBUG2**************
 import ipaddress #DEBUG2**************
 import time #PERF EV TIME INFO*
-import paramiko ##PERF EV AUTOMATION V2* 
-from threading import Thread ##PERF EV AUTOMATION V2* 
+import paramiko #PERF EV AUTOMATION V2* 
+from threading import Thread #PERF EV AUTOMATION V2* 
 from collections import deque
 from dataclasses import dataclass
 from enum import Enum
@@ -356,13 +356,15 @@ class QuicConnection:
         self._previous_server_address: Optional[QuicNetworkPath] = None  #DEBUG2*
         self._server_migration_address: Optional[QuicNetworkPath] = None  #DEBUG2*
         self._trigger_period = False #DEBUG2 TEST*
-        self._first_time_trigger = True #DEBUG2 TEST*
+        #self._first_time_trigger = True #DEBUG2 TEST* #DEBUG V3*
         self._migration_strategy_fast = False #DEBUG V2*
         self._change_addr_fast = False #DEBUG V2*
         self._initial_timestamp = 0 #PERF EV TIME INFO*
         self._final_timestamp = 0 #PERF EV TIME INFO*
         self._migration_type = -1 #PERF EV AUTOMATION V2*
-
+        self._n_request_migration = -1 #DEBUG V3*
+        self._interval_migration = -1 #DEBUG V3*
+        self._list_addr_server = [] #DEBUG V3*
 
         if self._is_client:
             self._original_destination_connection_id = self._peer_cid.cid
@@ -507,7 +509,7 @@ class QuicConnection:
         self._version = self._configuration.supported_versions[0]
         self._connect(now=now)
 
-    def datagrams_to_send(self, counter: int, hmstrategy: int, n_request_migration:int, now: float) -> List[Tuple[bytes, NetworkAddress]]:  #DEBUG2 TEST DEBUG V2* PERF EV AUTOMATION*      
+    def datagrams_to_send(self, counter: int, hmstrategy: int, n_request_migration:int, interval_migration:int, now: float) -> List[Tuple[bytes, NetworkAddress]]:  #DEBUG2 TEST DEBUG V2* PERF EV AUTOMATION* DEBUG V3*      
         """
         Return a list of `(data, addr)` tuples of datagrams which need to be
         sent, and the network address to which they need to be sent.
@@ -584,7 +586,7 @@ class QuicConnection:
                 if not self._handshake_confirmed:
                     for epoch in [tls.Epoch.INITIAL, tls.Epoch.HANDSHAKE]:
                         self._write_handshake(builder, epoch, now)
-                self._write_application(builder, network_path, now, counter, hmstrategy, n_request_migration) #DEBUG2 TEST DEBUG V2* PERF EV AUTOMATION*
+                self._write_application(builder, network_path, now, counter, hmstrategy, n_request_migration, interval_migration) #DEBUG2 TEST DEBUG V2* PERF EV AUTOMATION* DEBUG V3*
             except QuicPacketBuilderStop:
                 pass
 
@@ -780,13 +782,21 @@ class QuicConnection:
             self._initial_timestamp = time.time()
         #PERF EV TIME INFO****
 
-        #PERF EV AUTOMATION V2*****
-        if not self._is_client and self._migration_type == -1: 
+        #PERF EV AUTOMATION V2*****     DEBUG V3********
+        if not self._is_client and self._migration_type == -1 and len(self._list_addr_server) == 0: 
             f = open("src/aioquic/quic/MigrationInformation.txt", "r")
-            self._migration_type = int(f.read())
+            lines = f.readlines()
+            c_line = 0
+            for line in lines:
+                if c_line == 0:
+                    self._migration_type = int(line)
+                else:
+                    self._list_addr_server.append(line)
+            
             print("MIGRATION INFORMATION")
             print("MIGRATION TYPE" + self._migration_type)
-        #PERF EV AUTOMATION V2*****
+            print("LIST ADDRESSES SERVER" + self._list_addr_server)
+        #PERF EV AUTOMATION V2***** DEBUG V3********
 
         if self._quic_logger is not None:
             self._quic_logger.log_event(
@@ -2313,7 +2323,7 @@ class QuicConnection:
 
 
 
-    #DEBUG2************************
+    #DEBUG2************************ #PERF EV AUTOMATION V2****** #DEBUG V3******
 
     def _on_server_migration_delivery(
         self, delivery: QuicDeliveryState
@@ -2327,8 +2337,9 @@ class QuicConnection:
         else:
             t1 = Thread(target=ssh_command, args=(self._migration_type,))
             t1.start()
+            self._list_addr_server = list(reversed(self._list_addr_server))     
 
-    #DEBUG2************************
+    #DEBUG2************************ #PERF EV AUTOMATION V2****** #DEBUG V3******
 
     #DEBUG2 TEST************************
 
@@ -2659,7 +2670,7 @@ class QuicConnection:
             )
 
     def _write_application(
-        self, builder: QuicPacketBuilder, network_path: QuicNetworkPath, now: float, counter: int, hmstrategy: int, n_request_migration:int   #DEBUG2 TEST DEBUG V2* PERF EV AUTOMATION*
+        self, builder: QuicPacketBuilder, network_path: QuicNetworkPath, now: float, counter: int, hmstrategy: int, n_request_migration:int, interval_migration:int   #DEBUG2 TEST DEBUG V2* PERF EV AUTOMATION* DEBUG V3*
     ) -> None:
         crypto_stream: Optional[QuicStream] = None
         if self._cryptos[tls.Epoch.ONE_RTT].send.is_valid():
@@ -2748,11 +2759,19 @@ class QuicConnection:
                     self._migration_strategy_fast = True
                 #DEBUG V2*********************
 
-                #DEBUG2 TEST*********************
+                #DEBUG V3*********************
+                if self._n_request_migration == -1 and self._interval_migration == -1:
+                    self._n_request_migration = n_request_migration
+                    self._interval_migration = interval_migration
+
                 #Condition for triggering
-                if counter == n_request_migration-1 and self._first_time_trigger:
-                    self._trigger_period = True
-                    self._first_time_trigger = False
+                if counter == n_request_migration: #and self._first_time_trigger:
+                    if not self._trigger_period:
+                        self._trigger_period = True
+                    self._n_request_migration = self._n_request_migration + self._interval_migration
+                    
+                    #self._first_time_trigger = False
+                #DEBUG V3*********************
 
                 #TRIGGER
                 if self._is_client and self._trigger_period:
@@ -3140,7 +3159,7 @@ class QuicConnection:
 
         print("WRITE SERVER MIGRATION FRAME")
 
-        ip = "172.16.4.232"     #192.168.178.55
+        ip = self._list_addr_server[0]  #"172.16.4.232"     #192.168.178.55 #DEBUG V3*
         ip_int = int(ipaddress.IPv4Address(ip))
 
         print("IP ADDRESS SENT:")

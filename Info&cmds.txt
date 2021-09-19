@@ -1,0 +1,62 @@
+
+INFO UTILI
+
+Per la libreria CoAPthon3 dopo l'installazione sulla vm dove viene lanciato il server è necessario copiare un file nel seguente modo per evitare errori di Module Not Found:
+cp /usr/local/bin/exampleresources.py /usr/local/lib/python3.8/dist-packages/coapthon/
+
+Per il file Migration Information è necessario inserire il path relativo corretto a seconda del punto di esecuzione, tale modifica va fatta:
+- riga 757 connection.py --> f = open("/home/Trigger_v4/src/aioquic/quic/MigrationInformation.txt", "r")
+- riga 442 http3_server.py --> f = open("/home/Trigger_v4/src/aioquic/quic/MigrationInformation.txt", "a") 
+
+Il server CoAP da lanciare è posizionato al seguente path:
+Aioquic-Triggered-Git/CoAPthon3/serverCoAP.py
+Modificare l'indirizzo ip sul quale voler far partire il server alla riga 67 del file.
+
+
+*********************************+
+
+
+COMANDI GENERICI
+
+/home/ubuntu/go/src/github.com/opencontainers/runc/contrib/cmd/recvtty/recvtty /runc/containers/python_bundle/console.sock
+
+runc run -d --console-socket /runc/containers/python_bundle/console.sock python_bundle
+
+cd /home/Trigger_v3
+pip3 install -e .
+pip3 install aiofiles asgiref dnslib httpbin starlette wsproto paramiko CoAPthon3
+exit
+
+runc delete python_bundle
+
+runc list
+runc kill python_bundle KILL
+
+
+*********************************+
+
+
+COMANDI C & S AIOQUIC
+
+TRIGGERED
+
+"python3" , "/home/Trigger_v4/examples/http3_server.py" , "-c" , "/home/Trigger_v4/tests/ssl_cert.pem" , "-k" , "/home/Trigger_v4/tests/ssl_key.pem","--migration_type","0","--server_addresses","172.16.4.232,172.16.4.4"
+
+python3 examples/http3_server.py -c tests/ssl_cert.pem -k tests/ssl_key.pem --migration_type 0 --server_addresses "172.16.4.232,172.16.4.4"
+
+python3 examples/http3_client.py --ca-certs tests/pycacert.pem --handle_migration_strategy 0 --n_requests 7 --n_request_migration 2 --interval_migration 3 https://172.16.4.4:4433/
+
+python3 examples/http3_client.py --ca-certs tests/pycacert.pem --handle_migration_strategy 0 --n_requests 7 --n_request_migration 2 --interval_migration 3 https://192.168.178.24:4433/
+
+
+POOL OF ADDRESSES
+
+python3 examples/http3_server.py -c tests/ssl_cert.pem -k tests/ssl_key.pem --migration_type 0
+
+"python3" , "/home/Pool_v2/examples/http3_server.py" , "-c" , "/home/Pool_v2/tests/ssl_cert.pem" , "-k" , "/home/Pool_v2/tests/ssl_key.pem","--migration_type","0"
+
+python3 examples/http3_client.py --ca-certs tests/pycacert.pem --n_requests 7 --n_request_migration 2 --interval_migration 3 https://192.168.178.24:4433/
+
+python3 examples/http3_client.py --ca-certs tests/pycacert.pem --n_requests 7 --n_request_migration 2 --interval_migration 3 https://172.16.4.4:4433/
+
+

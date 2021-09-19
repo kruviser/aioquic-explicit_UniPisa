@@ -1,0 +1,12 @@
+root@conforti2:/home/ubuntu/master# python migrate-server-console.py 
+Socket created
+Socket bind complete
+Socket now listening
+Connected with 172.16.4.4:47766
+Version: 3.13
+Running time -p runc restore --console-socket /runc/containers/python_bundle/console.sock -d --image-path /runc/containers/python_bundle/image --work-path /runc/containers/python_bundle/image python_bundle
+Valore finale 0
+real 0.34
+user 0.01
+sys 0.05
+runc restored python_bundle successfully

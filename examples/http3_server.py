@@ -439,10 +439,10 @@ if __name__ == "__main__":
         print("You have to insert two addresses for the server, the one where it runs and the one to which it migrates")
         sys.exit()
 
-    f = open("src/aioquic/quic/MigrationInformation.txt", "a")
-    f.write(str(args.migration_type))
-    f.write(str(server_addr[0]))
-    f.write(str(server_addr[1]))
+    f = open("src/aioquic/quic/MigrationInformation.txt", "a") #CHANGE PATH #/home/Trigger_v4/
+    f.write(str(args.migration_type)+"\n")
+    f.write(server_addr[0]+"\n")
+    f.write(server_addr[1]+"\n")
     f.close()
     #PERF EV AUTOMATION V2****** #DEBUG V3*****
 

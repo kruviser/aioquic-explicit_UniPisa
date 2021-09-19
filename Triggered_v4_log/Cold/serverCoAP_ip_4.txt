@@ -1,0 +1,33 @@
+root@conforti:/home/ubuntu/master# python3 serverCoAP.py 
+172.16.4.232
+172.16.4.4
+/usr/bin/time -p -o info.txt -a runc checkpoint --image-path image  python_bundle
+/usr/bin/time -p -o info.txt -a runc checkpoint --image-path image  python_bundle finished after 0.54 second(s) with 0
+DUMP size: 29M	/runc/containers/python_bundle/image
+
+Number of files: 48 (reg: 47, dir: 1)
+Number of created files: 48 (reg: 47, dir: 1)
+Number of deleted files: 0
+Number of regular files transferred: 47
+Total file size: 29.56M bytes
+Total transferred file size: 29.56M bytes
+Literal data: 29.56M bytes
+Matched data: 0 bytes
+File list size: 0
+File list generation time: 0.001 seconds
+File list transfer time: 0.000 seconds
+Total bytes sent: 6.52M
+Total bytes received: 913
+
+sent 6.52M bytes  received 913 bytes  2.61M bytes/sec
+total size is 29.56M  speedup is 4.53
+172.16.4.232
+172.16.4.4
+/usr/bin/time -p -o info.txt -a runc checkpoint --image-path image  python_bundle
+/usr/bin/time -p -o info.txt -a runc checkpoint --image-path image  python_bundle finished after 0.02 second(s) with 1
+Something did not work. Exiting!
+time="2021-09-19T03:18:23Z" level=error msg="container \"python_bundle\" does not exist"
+container "python_bundle" does not exist
+Transferring DUMP to 172.16.4.232
+DUMP transfer time 1.8768389225 seconds
+runc restored python_bundle successfully

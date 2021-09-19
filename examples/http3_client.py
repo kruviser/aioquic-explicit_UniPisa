@@ -3,6 +3,7 @@ import asyncio
 import logging
 import os
 import pickle
+import sys
 import ssl
 import socket    #DEBUG2 TEST*******************
 import time
@@ -138,12 +139,12 @@ class HttpClient(QuicConnectionProtocol):
             HttpRequest(method="GET", url=URL(url), headers=headers), counter, hmstrategy, n_request_migration, interval_migration   #DEBUG2 TEST* DEBUG V2* #PERF EV AUTOMATION* DEBUG V3*
         )
 
-    async def post(self, url: str, data: bytes, headers: Dict = {}) -> Deque[H3Event]:
+    async def post(self, url: str, data: bytes, counter:int, hmstrategy:int, n_request_migration:int, interval_migration:int,  headers: Dict = {} ) -> Deque[H3Event]:   #DEBUG2 TEST* DEBUG V2* #PERF EV AUTOMATION* DEBUG V3*
         """
         Perform a POST request.
         """
         return await self._request(
-            HttpRequest(method="POST", url=URL(url), content=data, headers=headers)
+            HttpRequest(method="POST", url=URL(url), content=data, headers=headers), counter, hmstrategy, n_request_migration, interval_migration   #DEBUG2 TEST* DEBUG V2* #PERF EV AUTOMATION* DEBUG V3*
         )
 
     async def websocket(self, url: str, subprotocols: List[str] = []) -> WebSocket:
@@ -207,6 +208,7 @@ class HttpClient(QuicConnectionProtocol):
                 self.http_event_received(http_event)
 
     async def _request(self, request: HttpRequest, counter:int, hmstrategy:int, n_request_migration:int, interval_migration:int ):    #DEBUG2 TEST* DEBUG V2* PERF EV AUTOMATION* DEBUG V3*
+
         stream_id = self._quic.get_next_available_stream_id()
         self._http.send_headers(
             stream_id=stream_id,
@@ -225,20 +227,24 @@ class HttpClient(QuicConnectionProtocol):
         self._request_events[stream_id] = deque()
         self._request_waiter[stream_id] = waiter
 
-        self.transmit(counter = counter, hmstrategy = hmstrategy, n_request_migration=n_request_migration, interval_migration=interval_migration)    #DEBUG2 TEST* DEBUG V2* PERF EV AUTOMATION* DEBUG V3*
+        self.transmit(counter = counter, hmstrategy = hmstrategy, n_request_migration = n_request_migration, interval_migration = interval_migration)    #DEBUG2 TEST* DEBUG V2* PERF EV AUTOMATION* DEBUG V3*
 
         return await asyncio.shield(waiter)
 
 
 async def perform_http_request(
-    client: HttpClient, url: str, data: str, include: bool, output_dir: Optional[str], counter = int, hmstrategy = int, n_request_migration = int, interval_migration = int #DEBUG2 TEST* DEBUG V2* PERF EV AUTOMATION* DEBUG V3*  
+    client: HttpClient, url: str, data: str, include: bool, output_dir: Optional[str], counter: int, hmstrategy: int, n_request_migration: int, interval_migration: int #DEBUG2 TEST* DEBUG V2* PERF EV AUTOMATION* DEBUG V3*  
 ) -> None: 
     # perform request
+
     start = time.time()
     if data is not None:
         http_events = await client.post(
             url,
             data=data.encode(),
+            counter=counter,
+            n_request_migration=n_request_migration,
+            interval_migration=interval_migration,
             headers={"content-type": "application/x-www-form-urlencoded"},
         )
     else:
@@ -340,6 +346,7 @@ async def run(
             while(cont < n_requests):  #DEBUG V2
 
                 print("CLIENT IS SLEEPING")
+                print("NUMBER REQUEST --> " + str(cont+1))
                 await asyncio.sleep(5)  #DEBUG*
                 
                 coros = [
@@ -352,7 +359,7 @@ async def run(
                         counter = cont, #DEBUG2 TEST*
                         hmstrategy = hmstrategy, #DEBUG V2*
                         n_request_migration = n_request_migration, #PERF EV AUTOMATION* 
-                        interval_migration = interval_migration #DEBUG V3
+                        interval_migration = interval_migration, #DEBUG V3
                     )
                     for url in urls
                 ]

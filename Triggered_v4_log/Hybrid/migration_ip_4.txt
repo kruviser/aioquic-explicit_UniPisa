@@ -1,0 +1,535 @@
+root@conforti:/home/ubuntu/master# python migrate-server-console.py 
+Socket created
+Socket bind complete
+Socket now listening
+Connected with 172.16.4.232:37190
+Version: 3.13
+Running time -p runc restore --console-socket /runc/containers/python_bundle/console.sock -d --image-path /runc/containers/python_bundle/image --work-path /runc/containers/python_bundle/image --lazy-pages python_bundle
+Running lazy-pages server: criu lazy-pages --page-server --address 172.16.4.232 --port 27 -vv -D /runc/containers/python_bundle/image -W /runc/containers/python_bundle/image
+(00.000002) Version: 3.13 (gitid 0)
+(00.000023) Running on conforti Linux 4.19.0-rc8 #1 SMP Fri Apr 24 00:17:48 UTC 2020 x86_64
+(00.000038) Loaded kdat cache from /run/criu.kdat
+(00.000119) Reading image tree
+(00.000182) Add mnt ns 11 pid 1
+(00.000191) Add net ns 2 pid 1
+(00.000219) uffd: Waiting for incoming connections on lazy-pages.socket
+(00.180596) uffd: Received PID: 1, uffd: 10
+(00.180775) Opened local page read 1 (parent 0)
+(00.181071) Opened remote page read 2 (parent 1)
+(00.181461) uffd: 1-10: Found 349 VMAs in image
+(00.181551) uffd: 1-10: Found 326 pages to be handled by UFFD
+(00.181607) Connecting to server 172.16.4.232:27
+(00.186981) uffd: 1-10: UNMAP: 7ffec4bf4000(3000)
+(00.222373) pr1-2 Read 56291698b000 1 pages
+(00.223190) uffd: 1-10: uffd_copy: 0x56291698b000/4096
+(00.223229) pr1-2 Read 5629169c6000 1 pages
+(00.223650) uffd: 1-10: uffd_copy: 0x5629169c6000/4096
+(00.223671) pr1-2 Read 5629169f1000 1 pages
+(00.224021) uffd: 1-10: uffd_copy: 0x5629169f1000/4096
+(00.224041) pr1-2 Read 562916a67000 1 pages
+(00.224377) uffd: 1-10: uffd_copy: 0x562916a67000/4096
+(00.224391) pr1-2 Read 562916b1b000 1 pages
+(00.224746) uffd: 1-10: uffd_copy: 0x562916b1b000/4096
+(00.224769) pr1-2 Read 562916b6a000 1 pages
+(00.225099) uffd: 1-10: uffd_copy: 0x562916b6a000/4096
+(00.225120) pr1-2 Read 562916ba5000 1 pages
+(00.225489) uffd: 1-10: uffd_copy: 0x562916ba5000/4096
+(00.225510) pr1-2 Read 562916c9f000 1 pages
+(00.225852) uffd: 1-10: uffd_copy: 0x562916c9f000/4096
+(00.225877) pr1-2 Read 562916ca1000 1 pages
+(00.226209) uffd: 1-10: uffd_copy: 0x562916ca1000/4096
+(00.226232) pr1-2 Read 562916ca9000 1 pages
+(00.226554) uffd: 1-10: uffd_copy: 0x562916ca9000/4096
+(00.226568) pr1-2 Read 562916cb4000 1 pages
+(00.226910) uffd: 1-10: uffd_copy: 0x562916cb4000/4096
+(00.226962) pr1-2 Read 562916cbd000 1 pages
+(00.227294) uffd: 1-10: uffd_copy: 0x562916cbd000/4096
+(00.227318) pr1-2 Read 562916d8b000 1 pages
+(00.227661) uffd: 1-10: uffd_copy: 0x562916d8b000/4096
+(00.227693) pr1-2 Read 562916da3000 1 pages
+(00.228012) uffd: 1-10: uffd_copy: 0x562916da3000/4096
+(00.228036) pr1-2 Read 562916e2d000 1 pages
+(00.228424) uffd: 1-10: uffd_copy: 0x562916e2d000/4096
+(00.228450) pr1-2 Read 562916e96000 1 pages
+(00.229003) uffd: 1-10: uffd_copy: 0x562916e96000/4096
+(00.229026) pr1-2 Read 562916eb1000 1 pages
+(00.229334) uffd: 1-10: uffd_copy: 0x562916eb1000/4096
+(00.229356) pr1-2 Read 562916f1d000 3 pages
+(00.229818) uffd: 1-10: uffd_copy: 0x562916f1d000/12288
+(00.229846) pr1-2 Read 562916f2b000 1 pages
+(00.230184) uffd: 1-10: uffd_copy: 0x562916f2b000/4096
+(00.230208) pr1-2 Read 562916f47000 1 pages
+(00.230543) uffd: 1-10: uffd_copy: 0x562916f47000/4096
+(00.230562) pr1-2 Read 562916f59000 2 pages
+(00.230948) uffd: 1-10: uffd_copy: 0x562916f59000/8192
+(00.230975) pr1-2 Read 562916f5c000 1 pages
+(00.231304) uffd: 1-10: uffd_copy: 0x562916f5c000/4096
+(00.231323) pr1-2 Read 562916f6b000 4 pages
+(00.231767) uffd: 1-10: uffd_copy: 0x562916f6b000/16384
+(00.231810) pr1-2 Read 562916f94000 1 pages
+(00.232180) uffd: 1-10: uffd_copy: 0x562916f94000/4096
+(00.232214) pr1-2 Read 7f1454cdd000 3 pages
+(00.232584) uffd: 1-10: uffd_copy: 0x7f1454cdd000/12288
+(00.232611) pr1-2 Read 7f1454ce2000 1 pages
+(00.232922) uffd: 1-10: uffd_copy: 0x7f1454ce2000/4096
+(00.232950) pr1-2 Read 7f1454e21000 2 pages
+(00.233372) uffd: 1-10: uffd_copy: 0x7f1454e21000/8192
+(00.233413) pr1-2 Read 7f8030104000 2 pages
+(00.233732) uffd: 1-10: uffd_copy: 0x7f8030104000/8192
+(00.233748) pr1-2 Read 7f8030108000 1 pages
+(00.234043) uffd: 1-10: uffd_copy: 0x7f8030108000/4096
+(00.234058) pr1-2 Read 7f803010c000 4 pages
+(00.234395) uffd: 1-10: uffd_copy: 0x7f803010c000/16384
+(00.234417) pr1-2 Read 7f8030111000 2 pages
+(00.234779) uffd: 1-10: uffd_copy: 0x7f8030111000/8192
+(00.234795) pr1-2 Read 7f8030114000 3 pages
+(00.235133) uffd: 1-10: uffd_copy: 0x7f8030114000/12288
+(00.235147) pr1-2 Read 7f8030118000 1 pages
+(00.235508) uffd: 1-10: uffd_copy: 0x7f8030118000/4096
+(00.235520) pr1-2 Read 7f803011b000 1 pages
+(00.235837) uffd: 1-10: uffd_copy: 0x7f803011b000/4096
+(00.235846) pr1-2 Read 7f803012a000 1 pages
+(00.236154) uffd: 1-10: uffd_copy: 0x7f803012a000/4096
+(00.236165) pr1-2 Read 7f803012f000 1 pages
+(00.236472) uffd: 1-10: uffd_copy: 0x7f803012f000/4096
+(00.236484) pr1-2 Read 7f8030131000 1 pages
+(00.236794) uffd: 1-10: uffd_copy: 0x7f8030131000/4096
+(00.236805) pr1-2 Read 7f8030134000 1 pages
+(00.237114) uffd: 1-10: uffd_copy: 0x7f8030134000/4096
+(00.237125) pr1-2 Read 7f8030136000 6 pages
+(00.237521) uffd: 1-10: uffd_copy: 0x7f8030136000/24576
+(00.237541) pr1-2 Read 7f8030966000 1 pages
+(00.237858) uffd: 1-10: uffd_copy: 0x7f8030966000/4096
+(00.237870) pr1-2 Read 7f803096f000 1 pages
+(00.238193) uffd: 1-10: uffd_copy: 0x7f803096f000/4096
+(00.238204) pr1-2 Read 7f8030973000 1 pages
+(00.238517) uffd: 1-10: uffd_copy: 0x7f8030973000/4096
+(00.238528) pr1-2 Read 7f8030976000 3 pages
+(00.238867) uffd: 1-10: uffd_copy: 0x7f8030976000/12288
+(00.238881) pr1-2 Read 7f8030981000 2 pages
+(00.239205) uffd: 1-10: uffd_copy: 0x7f8030981000/8192
+(00.239219) pr1-2 Read 7f80313b3000 2 pages
+(00.239543) uffd: 1-10: uffd_copy: 0x7f80313b3000/8192
+(00.239557) pr1-2 Read 7f80313b6000 1 pages
+(00.239866) uffd: 1-10: uffd_copy: 0x7f80313b6000/4096
+(00.239877) pr1-2 Read 7f80313c4000 1 pages
+(00.240188) uffd: 1-10: uffd_copy: 0x7f80313c4000/4096
+(00.240199) pr1-2 Read 7f80313dc000 1 pages
+(00.240516) uffd: 1-10: uffd_copy: 0x7f80313dc000/4096
+(00.240527) pr1-2 Read 7f80313e3000 1 pages
+(00.240838) uffd: 1-10: uffd_copy: 0x7f80313e3000/4096
+(00.240849) pr1-2 Read 7f80313e5000 1 pages
+(00.241164) uffd: 1-10: uffd_copy: 0x7f80313e5000/4096
+(00.241175) pr1-2 Read 7f8031400000 1 pages
+(00.241499) uffd: 1-10: uffd_copy: 0x7f8031400000/4096
+(00.241511) pr1-2 Read 7f8031410000 1 pages
+(00.241830) uffd: 1-10: uffd_copy: 0x7f8031410000/4096
+(00.241841) pr1-2 Read 7f8031425000 1 pages
+(00.242155) uffd: 1-10: uffd_copy: 0x7f8031425000/4096
+(00.242166) pr1-2 Read 7f8031427000 1 pages
+(00.242485) uffd: 1-10: uffd_copy: 0x7f8031427000/4096
+(00.242496) pr1-2 Read 7f803142b000 1 pages
+(00.242902) uffd: 1-10: uffd_copy: 0x7f803142b000/4096
+(00.242913) pr1-2 Read 7f803142f000 3 pages
+(00.243260) uffd: 1-10: uffd_copy: 0x7f803142f000/12288
+(00.243275) pr1-2 Read 7f803143f000 1 pages
+(00.243609) uffd: 1-10: uffd_copy: 0x7f803143f000/4096
+(00.243621) pr1-2 Read 7f8031470000 1 pages
+(00.243961) uffd: 1-10: uffd_copy: 0x7f8031470000/4096
+(00.243972) pr1-2 Read 7f803149b000 1 pages
+(00.244271) uffd: 1-10: uffd_copy: 0x7f803149b000/4096
+(00.244282) pr1-2 Read 7f80314a5000 1 pages
+(00.244589) uffd: 1-10: uffd_copy: 0x7f80314a5000/4096
+(00.244600) pr1-2 Read 7f80314ab000 1 pages
+(00.244925) uffd: 1-10: uffd_copy: 0x7f80314ab000/4096
+(00.244936) pr1-2 Read 7f80314d4000 1 pages
+(00.245263) uffd: 1-10: uffd_copy: 0x7f80314d4000/4096
+(00.245273) pr1-2 Read 7f80314dc000 1 pages
+(00.245604) uffd: 1-10: uffd_copy: 0x7f80314dc000/4096
+(00.245614) pr1-2 Read 7f8031a59000 1 pages
+(00.245952) uffd: 1-10: uffd_copy: 0x7f8031a59000/4096
+(00.245964) pr1-2 Read 7f8031f05000 1 pages
+(00.246295) uffd: 1-10: uffd_copy: 0x7f8031f05000/4096
+(00.246307) pr1-2 Read 7f8031f11000 1 pages
+(00.246735) uffd: 1-10: uffd_copy: 0x7f8031f11000/4096
+(00.246746) pr1-2 Read 7f8031f29000 1 pages
+(00.247088) uffd: 1-10: uffd_copy: 0x7f8031f29000/4096
+(00.247098) pr1-2 Read 7f8031f2d000 1 pages
+(00.247398) uffd: 1-10: uffd_copy: 0x7f8031f2d000/4096
+(00.247409) pr1-2 Read 7f8031f30000 1 pages
+(00.247743) uffd: 1-10: uffd_copy: 0x7f8031f30000/4096
+(00.247754) pr1-2 Read 7f8031f68000 1 pages
+(00.248067) uffd: 1-10: uffd_copy: 0x7f8031f68000/4096
+(00.248079) pr1-2 Read 7f8031f6c000 1 pages
+(00.248423) uffd: 1-10: uffd_copy: 0x7f8031f6c000/4096
+(00.248434) pr1-2 Read 7f8031f6f000 1 pages
+(00.248774) uffd: 1-10: uffd_copy: 0x7f8031f6f000/4096
+(00.248784) pr1-2 Read 7f8031fa4000 2 pages
+(00.249142) uffd: 1-10: uffd_copy: 0x7f8031fa4000/8192
+(00.249154) pr1-2 Read 7f8031fa7000 3 pages
+(00.249519) uffd: 1-10: uffd_copy: 0x7f8031fa7000/12288
+(00.249532) pr1-2 Read 7f8031fb2000 1 pages
+(00.249892) uffd: 1-10: uffd_copy: 0x7f8031fb2000/4096
+(00.249903) pr1-2 Read 7f8031fbb000 1 pages
+(00.250248) uffd: 1-10: uffd_copy: 0x7f8031fbb000/4096
+(00.250258) pr1-2 Read 7f8031fbd000 3 pages
+(00.250644) uffd: 1-10: uffd_copy: 0x7f8031fbd000/12288
+(00.250657) pr1-2 Read 7f8031fc2000 1 pages
+(00.251000) uffd: 1-10: uffd_copy: 0x7f8031fc2000/4096
+(00.251011) pr1-2 Read 7f8031fc4000 5 pages
+(00.251397) uffd: 1-10: uffd_copy: 0x7f8031fc4000/20480
+(00.251416) pr1-2 Read 7f8031fca000 1 pages
+(00.251738) uffd: 1-10: uffd_copy: 0x7f8031fca000/4096
+(00.251749) pr1-2 Read 7f8032021000 1 pages
+(00.252077) uffd: 1-10: uffd_copy: 0x7f8032021000/4096
+(00.252090) pr1-2 Read 7f8032038000 1 pages
+(00.252423) uffd: 1-10: uffd_copy: 0x7f8032038000/4096
+(00.252433) pr1-2 Read 7f8032042000 6 pages
+(00.252823) uffd: 1-10: uffd_copy: 0x7f8032042000/24576
+(00.252841) pr1-2 Read 7f8032049000 2 pages
+(00.253192) uffd: 1-10: uffd_copy: 0x7f8032049000/8192
+(00.253204) pr1-2 Read 7f803204c000 1 pages
+(00.253561) uffd: 1-10: uffd_copy: 0x7f803204c000/4096
+(00.253572) pr1-2 Read 7f803204e000 1 pages
+(00.253897) uffd: 1-10: uffd_copy: 0x7f803204e000/4096
+(00.253909) pr1-2 Read 7f8032050000 2 pages
+(00.254312) uffd: 1-10: uffd_copy: 0x7f8032050000/8192
+(00.254324) pr1-2 Read 7f8032053000 3 pages
+(00.254828) uffd: 1-10: uffd_copy: 0x7f8032053000/12288
+(00.254842) pr1-2 Read 7f8032057000 2 pages
+(00.255255) uffd: 1-10: uffd_copy: 0x7f8032057000/8192
+(00.255268) pr1-2 Read 7f803205c000 1 pages
+(00.255663) uffd: 1-10: uffd_copy: 0x7f803205c000/4096
+(00.255676) pr1-2 Read 7f803205e000 2 pages
+(00.256140) uffd: 1-10: uffd_copy: 0x7f803205e000/8192
+(00.256153) pr1-2 Read 7f8032062000 1 pages
+(00.256488) uffd: 1-10: uffd_copy: 0x7f8032062000/4096
+(00.256499) pr1-2 Read 7f8032064000 2 pages
+(00.256860) uffd: 1-10: uffd_copy: 0x7f8032064000/8192
+(00.256872) pr1-2 Read 7f8032068000 1 pages
+(00.257235) uffd: 1-10: uffd_copy: 0x7f8032068000/4096
+(00.257247) pr1-2 Read 7f803206b000 1 pages
+(00.257596) uffd: 1-10: uffd_copy: 0x7f803206b000/4096
+(00.257608) pr1-2 Read 7f8032077000 2 pages
+(00.257972) uffd: 1-10: uffd_copy: 0x7f8032077000/8192
+(00.257984) pr1-2 Read 7f803207a000 1 pages
+(00.258405) uffd: 1-10: uffd_copy: 0x7f803207a000/4096
+(00.258416) pr1-2 Read 7f803207d000 1 pages
+(00.258886) uffd: 1-10: uffd_copy: 0x7f803207d000/4096
+(00.258897) pr1-2 Read 7f803207f000 2 pages
+(00.259283) uffd: 1-10: uffd_copy: 0x7f803207f000/8192
+(00.259296) pr1-2 Read 7f8032093000 1 pages
+(00.259657) uffd: 1-10: uffd_copy: 0x7f8032093000/4096
+(00.259669) pr1-2 Read 7f8032096000 1 pages
+(00.260067) uffd: 1-10: uffd_copy: 0x7f8032096000/4096
+(00.260078) pr1-2 Read 7f80320a0000 1 pages
+(00.260449) uffd: 1-10: uffd_copy: 0x7f80320a0000/4096
+(00.260461) pr1-2 Read 7f80320c0000 1 pages
+(00.260844) uffd: 1-10: uffd_copy: 0x7f80320c0000/4096
+(00.260855) pr1-2 Read 7f80320c3000 1 pages
+(00.261236) uffd: 1-10: uffd_copy: 0x7f80320c3000/4096
+(00.261246) pr1-2 Read 7f80320cf000 1 pages
+(00.261608) uffd: 1-10: uffd_copy: 0x7f80320cf000/4096
+(00.261620) pr1-2 Read 7f80320dd000 1 pages
+(00.262028) uffd: 1-10: uffd_copy: 0x7f80320dd000/4096
+(00.262039) pr1-2 Read 7f8032120000 1 pages
+(00.262431) uffd: 1-10: uffd_copy: 0x7f8032120000/4096
+(00.262443) pr1-2 Read 7f80321a5000 1 pages
+(00.262901) uffd: 1-10: uffd_copy: 0x7f80321a5000/4096
+(00.262913) pr1-2 Read 7f803245c000 1 pages
+(00.263299) uffd: 1-10: uffd_copy: 0x7f803245c000/4096
+(00.263310) pr1-2 Read 7f80325be000 1 pages
+(00.263659) uffd: 1-10: uffd_copy: 0x7f80325be000/4096
+(00.263673) pr1-2 Read 7f8032626000 1 pages
+(00.264079) uffd: 1-10: uffd_copy: 0x7f8032626000/4096
+(00.264091) pr1-2 Read 7f8032631000 1 pages
+(00.264479) uffd: 1-10: uffd_copy: 0x7f8032631000/4096
+(00.264490) pr1-2 Read 7f803273c000 1 pages
+(00.265025) uffd: 1-10: uffd_copy: 0x7f803273c000/4096
+(00.265036) pr1-2 Read 7f8032767000 1 pages
+(00.265440) uffd: 1-10: uffd_copy: 0x7f8032767000/4096
+(00.265451) pr1-2 Read 7f803284c000 1 pages
+(00.265846) uffd: 1-10: uffd_copy: 0x7f803284c000/4096
+(00.265859) pr1-2 Read 7f803288f000 1 pages
+(00.266255) uffd: 1-10: uffd_copy: 0x7f803288f000/4096
+(00.266266) pr1-2 Read 7f8032909000 1 pages
+(00.266715) uffd: 1-10: uffd_copy: 0x7f8032909000/4096
+(00.266728) pr1-2 Read 7f80329bf000 1 pages
+(00.267119) uffd: 1-10: uffd_copy: 0x7f80329bf000/4096
+(00.267130) pr1-2 Read 7f80329c2000 1 pages
+(00.267530) uffd: 1-10: uffd_copy: 0x7f80329c2000/4096
+(00.267541) pr1-2 Read 7f80329c4000 1 pages
+(00.267895) uffd: 1-10: uffd_copy: 0x7f80329c4000/4096
+(00.267907) pr1-2 Read 7f80329c6000 1 pages
+(00.268320) uffd: 1-10: uffd_copy: 0x7f80329c6000/4096
+(00.268331) pr1-2 Read 7f80329ca000 1 pages
+(00.268719) uffd: 1-10: uffd_copy: 0x7f80329ca000/4096
+(00.268731) pr1-2 Read 7f80329e0000 1 pages
+(00.269123) uffd: 1-10: uffd_copy: 0x7f80329e0000/4096
+(00.269135) pr1-2 Read 7f8032d0f000 1 pages
+(00.269547) uffd: 1-10: uffd_copy: 0x7f8032d0f000/4096
+(00.269559) pr1-2 Read 7f8032d41000 1 pages
+(00.269968) uffd: 1-10: uffd_copy: 0x7f8032d41000/4096
+(00.269981) pr1-2 Read 7f8032d44000 1 pages
+(00.270370) uffd: 1-10: uffd_copy: 0x7f8032d44000/4096
+(00.270381) pr1-2 Read 7f8032d49000 2 pages
+(00.270840) uffd: 1-10: uffd_copy: 0x7f8032d49000/8192
+(00.270853) pr1-2 Read 7f8032d4d000 2 pages
+(00.271254) uffd: 1-10: uffd_copy: 0x7f8032d4d000/8192
+(00.271267) pr1-2 Read 7f8032d50000 1 pages
+(00.271625) uffd: 1-10: uffd_copy: 0x7f8032d50000/4096
+(00.271638) pr1-2 Read 7f8032d52000 2 pages
+(00.272014) uffd: 1-10: uffd_copy: 0x7f8032d52000/8192
+(00.272027) pr1-2 Read 7f8032d55000 1 pages
+(00.272396) uffd: 1-10: uffd_copy: 0x7f8032d55000/4096
+(00.272407) pr1-2 Read 7f8032d57000 1 pages
+(00.272767) uffd: 1-10: uffd_copy: 0x7f8032d57000/4096
+(00.272778) pr1-2 Read 7f8032d5a000 1 pages
+(00.273138) uffd: 1-10: uffd_copy: 0x7f8032d5a000/4096
+(00.273150) pr1-2 Read 7f8032d5c000 1 pages
+(00.273509) uffd: 1-10: uffd_copy: 0x7f8032d5c000/4096
+(00.273520) pr1-2 Read 7f8032d5e000 1 pages
+(00.273879) uffd: 1-10: uffd_copy: 0x7f8032d5e000/4096
+(00.273891) pr1-2 Read 7f8032d62000 1 pages
+(00.274250) uffd: 1-10: uffd_copy: 0x7f8032d62000/4096
+(00.274262) pr1-2 Read 7f8032d66000 1 pages
+(00.274650) uffd: 1-10: uffd_copy: 0x7f8032d66000/4096
+(00.274662) pr1-2 Read 7f8032d8b000 1 pages
+(00.275051) uffd: 1-10: uffd_copy: 0x7f8032d8b000/4096
+(00.275063) pr1-2 Read 7f8032da5000 1 pages
+(00.275423) uffd: 1-10: uffd_copy: 0x7f8032da5000/4096
+(00.275435) pr1-2 Read 7f8032dab000 1 pages
+(00.275811) uffd: 1-10: uffd_copy: 0x7f8032dab000/4096
+(00.275828) pr1-2 Read 7f8032daf000 1 pages
+(00.276176) uffd: 1-10: uffd_copy: 0x7f8032daf000/4096
+(00.276188) pr1-2 Read 7f8032db7000 1 pages
+(00.276539) uffd: 1-10: uffd_copy: 0x7f8032db7000/4096
+(00.276551) pr1-2 Read 7f8032db9000 1 pages
+(00.276907) uffd: 1-10: uffd_copy: 0x7f8032db9000/4096
+(00.276918) pr1-2 Read 7f8032dbc000 1 pages
+(00.277280) uffd: 1-10: uffd_copy: 0x7f8032dbc000/4096
+(00.277292) pr1-2 Read 7f8032dbe000 2 pages
+(00.277698) uffd: 1-10: uffd_copy: 0x7f8032dbe000/8192
+(00.277710) pr1-2 Read 7f8032dd5000 1 pages
+(00.278284) uffd: 1-10: uffd_copy: 0x7f8032dd5000/4096
+(00.278295) pr1-2 Read 7f8032e11000 3 pages
+(00.278771) uffd: 1-10: uffd_copy: 0x7f8032e11000/12288
+(00.278787) pr1-2 Read 7f8032e15000 1 pages
+(00.279237) uffd: 1-10: uffd_copy: 0x7f8032e15000/4096
+(00.279248) pr1-2 Read 7f8032e18000 1 pages
+(00.279633) uffd: 1-10: uffd_copy: 0x7f8032e18000/4096
+(00.279646) pr1-2 Read 7f8032e1a000 3 pages
+(00.280036) uffd: 1-10: uffd_copy: 0x7f8032e1a000/12288
+(00.280050) pr1-2 Read 7f8032e1e000 1 pages
+(00.280471) uffd: 1-10: uffd_copy: 0x7f8032e1e000/4096
+(00.280483) pr1-2 Read 7f8032e22000 1 pages
+(00.280876) uffd: 1-10: uffd_copy: 0x7f8032e22000/4096
+(00.280888) pr1-2 Read 7f8032e25000 1 pages
+(00.281286) uffd: 1-10: uffd_copy: 0x7f8032e25000/4096
+(00.281297) pr1-2 Read 7f8032e27000 1 pages
+(00.281687) uffd: 1-10: uffd_copy: 0x7f8032e27000/4096
+(00.281698) pr1-2 Read 7f8032e2a000 1 pages
+(00.282078) uffd: 1-10: uffd_copy: 0x7f8032e2a000/4096
+(00.282089) pr1-2 Read 7f8032e2d000 1 pages
+(00.282476) uffd: 1-10: uffd_copy: 0x7f8032e2d000/4096
+(00.282488) pr1-2 Read 7f8032e32000 1 pages
+(00.282892) uffd: 1-10: uffd_copy: 0x7f8032e32000/4096
+(00.282903) pr1-2 Read 7f8032e34000 1 pages
+(00.283290) uffd: 1-10: uffd_copy: 0x7f8032e34000/4096
+(00.283301) pr1-2 Read 7f8032e49000 1 pages
+(00.283703) uffd: 1-10: uffd_copy: 0x7f8032e49000/4096
+(00.283716) pr1-2 Read 7f8032e59000 1 pages
+(00.284103) uffd: 1-10: uffd_copy: 0x7f8032e59000/4096
+(00.284116) pr1-2 Read 7f8032e67000 1 pages
+(00.284498) uffd: 1-10: uffd_copy: 0x7f8032e67000/4096
+(00.284510) pr1-2 Read 7f8032e6d000 1 pages
+(00.284901) uffd: 1-10: uffd_copy: 0x7f8032e6d000/4096
+(00.284912) pr1-2 Read 7f8032e70000 1 pages
+(00.285300) uffd: 1-10: uffd_copy: 0x7f8032e70000/4096
+(00.285311) pr1-2 Read 7f8032e82000 1 pages
+(00.285725) uffd: 1-10: uffd_copy: 0x7f8032e82000/4096
+(00.285737) pr1-2 Read 7f8032e84000 1 pages
+(00.286141) uffd: 1-10: uffd_copy: 0x7f8032e84000/4096
+(00.286152) pr1-2 Read 7f8032e89000 1 pages
+(00.286578) uffd: 1-10: uffd_copy: 0x7f8032e89000/4096
+(00.286590) pr1-2 Read 7f8032e8b000 2 pages
+(00.287010) uffd: 1-10: uffd_copy: 0x7f8032e8b000/8192
+(00.287022) pr1-2 Read 7f8032eca000 1 pages
+(00.287442) uffd: 1-10: uffd_copy: 0x7f8032eca000/4096
+(00.287453) pr1-2 Read 7f8032ee2000 1 pages
+(00.288149) uffd: 1-10: uffd_copy: 0x7f8032ee2000/4096
+(00.288159) pr1-2 Read 7f8032eed000 1 pages
+(00.288576) uffd: 1-10: uffd_copy: 0x7f8032eed000/4096
+(00.288588) pr1-2 Read 7f8032ef7000 1 pages
+(00.288986) uffd: 1-10: uffd_copy: 0x7f8032ef7000/4096
+(00.288998) pr1-2 Read 7f8032f01000 1 pages
+(00.289394) uffd: 1-10: uffd_copy: 0x7f8032f01000/4096
+(00.289405) pr1-2 Read 7f8032f13000 1 pages
+(00.289836) uffd: 1-10: uffd_copy: 0x7f8032f13000/4096
+(00.289848) pr1-2 Read 7f8032f28000 1 pages
+(00.290211) uffd: 1-10: uffd_copy: 0x7f8032f28000/4096
+(00.290227) pr1-2 Read 7f8032f8a000 1 pages
+(00.290660) uffd: 1-10: uffd_copy: 0x7f8032f8a000/4096
+(00.290671) pr1-2 Read 7f8032f8e000 1 pages
+(00.291022) uffd: 1-10: uffd_copy: 0x7f8032f8e000/4096
+(00.291034) pr1-2 Read 7f8032f9d000 1 pages
+(00.291413) uffd: 1-10: uffd_copy: 0x7f8032f9d000/4096
+(00.291424) pr1-2 Read 7f8032f9f000 1 pages
+(00.291807) uffd: 1-10: uffd_copy: 0x7f8032f9f000/4096
+(00.291818) pr1-2 Read 7f8032fa7000 1 pages
+(00.292185) uffd: 1-10: uffd_copy: 0x7f8032fa7000/4096
+(00.292197) pr1-2 Read 7f8032fd3000 1 pages
+(00.292568) uffd: 1-10: uffd_copy: 0x7f8032fd3000/4096
+(00.292580) pr1-2 Read 7f8032fd7000 3 pages
+(00.292980) uffd: 1-10: uffd_copy: 0x7f8032fd7000/12288
+(00.292994) pr1-2 Read 7f8032fdc000 2 pages
+(00.293412) uffd: 1-10: uffd_copy: 0x7f8032fdc000/8192
+(00.293423) pr1-2 Read 7f8032fe1000 1 pages
+(00.293798) uffd: 1-10: uffd_copy: 0x7f8032fe1000/4096
+(00.293809) pr1-2 Read 7f8032fef000 1 pages
+(00.294182) uffd: 1-10: uffd_copy: 0x7f8032fef000/4096
+(00.294194) pr1-2 Read 7f8032ff6000 1 pages
+(00.294564) uffd: 1-10: uffd_copy: 0x7f8032ff6000/4096
+(00.294576) pr1-2 Read 7f8033005000 1 pages
+(00.294966) uffd: 1-10: uffd_copy: 0x7f8033005000/4096
+(00.294978) pr1-2 Read 7f803300b000 1 pages
+(00.295355) uffd: 1-10: uffd_copy: 0x7f803300b000/4096
+(00.295366) pr1-2 Read 7f803300e000 1 pages
+(00.295781) uffd: 1-10: uffd_copy: 0x7f803300e000/4096
+(00.295792) pr1-2 Read 7f8033036000 1 pages
+(00.296187) uffd: 1-10: uffd_copy: 0x7f8033036000/4096
+(00.296197) pr1-2 Read 7f8033038000 1 pages
+(00.296260) uffd: 1-10: #PF at 0x7ffec4b33000
+(00.296269) pr1-2 Read 7ffec4b33000 1 pages
+(00.296418) uffd: 1-10: #PF at 0x7f80334f8000
+(00.296426) pr1-2 Read 7f80334f8000 1 pages
+(00.296461) uffd: 1-10: #PF at 0x7f803345f000
+(00.296474) pr1-2 Read 7f803345f000 1 pages
+(00.296582) uffd: 1-10: uffd_copy: 0x7f8033038000/4096
+(00.296698) uffd: 1-10: uffd_copy: 0x7ffec4b33000/4096
+(00.296794) uffd: 1-10: uffd_copy: 0x7f80334f8000/4096
+(00.296804) uffd: 1-10: #PF at 0x7f80334f7000
+(00.296808) pr1-2 Read 7f80334f7000 1 pages
+(00.296875) uffd: 1-10: #PF at 0x7f803345f000
+(00.296900) uffd: 1-10: uffd_copy: 0x7f803345f000/4096
+(00.296921) uffd: 1-10: #PF at 0x7f803345e000
+(00.296929) pr1-2 Read 7f803345e000 1 pages
+(00.297240) uffd: 1-10: uffd_copy: 0x7f80334f7000/4096
+(00.297346) uffd: 1-10: uffd_copy: 0x7f803345e000/4096
+(00.297358) pr1-2 Read 7f803303e000 3 pages
+(00.297503) uffd: 1-10: #PF at 0x7f8033445000
+(00.297512) pr1-2 Read 7f8033445000 1 pages
+(00.297837) uffd: 1-10: uffd_copy: 0x7f803303e000/12288
+(00.297852) uffd: 1-10: uffd_copy: 0x7f8033445000/4096
+(00.297863) pr1-2 Read 7f8033045000 2 pages
+(00.297909) uffd: 1-10: #PF at 0x7f80334f6000
+(00.297914) pr1-2 Read 7f80334f6000 1 pages
+(00.298231) uffd: 1-10: uffd_copy: 0x7f8033045000/8192
+(00.298350) uffd: 1-10: uffd_copy: 0x7f80334f6000/4096
+(00.298366) pr1-2 Read 7f803305e000 1 pages
+(00.298427) uffd: 1-10: #PF at 0x7f8033108000
+(00.298436) pr1-2 Read 7f8033108000 1 pages
+(00.298785) uffd: 1-10: uffd_copy: 0x7f803305e000/4096
+(00.298877) uffd: 1-10: uffd_copy: 0x7f8033108000/4096
+(00.298892) pr1-2 Read 7f803306c000 1 pages
+(00.298929) uffd: 1-10: #PF at 0x7f8033443000
+(00.298938) pr1-2 Read 7f8033443000 1 pages
+(00.299264) uffd: 1-10: uffd_copy: 0x7f803306c000/4096
+(00.299384) uffd: 1-10: uffd_copy: 0x7f8033443000/4096
+(00.299400) pr1-2 Read 7f803306e000 3 pages
+(00.299438) uffd: 1-10: #PF at 0x7f8033446000
+(00.299447) pr1-2 Read 7f8033446000 1 pages
+(00.299781) uffd: 1-10: uffd_copy: 0x7f803306e000/12288
+(00.299878) uffd: 1-10: uffd_copy: 0x7f8033446000/4096
+(00.299892) pr1-2 Read 7f8033074000 3 pages
+(00.299952) uffd: 1-10: #PF at 0x7f80330b2000
+(00.299961) pr1-2 Read 7f80330b2000 1 pages
+(00.300289) uffd: 1-10: uffd_copy: 0x7f8033074000/12288
+(00.300309) uffd: 1-10: uffd_copy: 0x7f80330b2000/4096
+(00.300318) pr1-2 Read 7f8033086000 1 pages
+(00.300404) uffd: 1-10: #PF at 0x7f80330de000
+(00.300411) pr1-2 Read 7f80330de000 1 pages
+(00.300680) uffd: 1-10: uffd_copy: 0x7f8033086000/4096
+(00.300764) uffd: 1-10: uffd_copy: 0x7f80330de000/4096
+(00.300777) pr1-2 Read 7f8033088000 1 pages
+(00.300820) uffd: 1-10: #PF at 0x7f803345b000
+(00.300825) pr1-2 Read 7f803345b000 1 pages
+(00.301144) uffd: 1-10: uffd_copy: 0x7f8033088000/4096
+(00.301231) uffd: 1-10: uffd_copy: 0x7f803345b000/4096
+(00.301242) pr1-2 Read 7f803308a000 1 pages
+(00.301286) uffd: 1-10: #PF at 0x7f803345a000
+(00.301292) pr1-2 Read 7f803345a000 1 pages
+(00.301616) uffd: 1-10: uffd_copy: 0x7f803308a000/4096
+(00.301723) uffd: 1-10: uffd_copy: 0x7f803345a000/4096
+(00.301734) pr1-2 Read 7f803308c000 3 pages
+(00.301775) uffd: 1-10: #PF at 0x7f803344f000
+(00.301780) pr1-2 Read 7f803344f000 1 pages
+(00.302129) uffd: 1-10: uffd_copy: 0x7f803308c000/12288
+(00.302199) uffd: 1-10: uffd_copy: 0x7f803344f000/4096
+(00.302210) pr1-2 Read 7f803309e000 1 pages
+(00.302293) uffd: 1-10: #PF at 0x7f8033454000
+(00.302298) pr1-2 Read 7f8033454000 1 pages
+(00.302597) uffd: 1-10: uffd_copy: 0x7f803309e000/4096
+(00.302747) uffd: 1-10: uffd_copy: 0x7f8033454000/4096
+(00.302761) pr1-2 Read 7f80330a5000 2 pages
+(00.303151) uffd: 1-10: uffd_copy: 0x7f80330a5000/8192
+(00.303163) pr1-2 Read 7f80330ad000 1 pages
+(00.303525) uffd: 1-10: uffd_copy: 0x7f80330ad000/4096
+(00.303537) pr1-2 Read 7f80330ba000 1 pages
+(00.303907) uffd: 1-10: uffd_copy: 0x7f80330ba000/4096
+(00.303918) pr1-2 Read 7f80330c0000 1 pages
+(00.304286) uffd: 1-10: uffd_copy: 0x7f80330c0000/4096
+(00.304298) pr1-2 Read 7f80330c4000 1 pages
+(00.304638) uffd: 1-10: uffd_copy: 0x7f80330c4000/4096
+(00.304649) pr1-2 Read 7f80330c6000 1 pages
+(00.304993) uffd: 1-10: uffd_copy: 0x7f80330c6000/4096
+(00.305003) pr1-2 Read 7f80330c8000 1 pages
+(00.305349) uffd: 1-10: uffd_copy: 0x7f80330c8000/4096
+(00.305364) pr1-2 Read 7f80330ca000 1 pages
+(00.305720) uffd: 1-10: uffd_copy: 0x7f80330ca000/4096
+(00.305732) pr1-2 Read 7f80330cc000 2 pages
+(00.306089) uffd: 1-10: uffd_copy: 0x7f80330cc000/8192
+(00.306101) pr1-2 Read 7f80330d8000 2 pages
+(00.306466) uffd: 1-10: uffd_copy: 0x7f80330d8000/8192
+(00.306478) pr1-2 Read 7f80330db000 1 pages
+(00.306977) uffd: 1-10: uffd_copy: 0x7f80330db000/4096
+(00.306988) pr1-2 Read 7f80330e0000 1 pages
+(00.307399) uffd: 1-10: uffd_copy: 0x7f80330e0000/4096
+(00.307411) pr1-2 Read 7f80330e7000 1 pages
+(00.307791) uffd: 1-10: uffd_copy: 0x7f80330e7000/4096
+(00.307803) pr1-2 Read 7f80330e9000 1 pages
+(00.308175) uffd: 1-10: uffd_copy: 0x7f80330e9000/4096
+(00.308187) pr1-2 Read 7f80330ef000 2 pages
+(00.308577) uffd: 1-10: uffd_copy: 0x7f80330ef000/8192
+(00.308590) pr1-2 Read 7f80330f4000 2 pages
+(00.308943) uffd: 1-10: uffd_copy: 0x7f80330f4000/8192
+(00.308957) pr1-2 Read 7f80330fb000 2 pages
+(00.309315) uffd: 1-10: uffd_copy: 0x7f80330fb000/8192
+(00.309327) pr1-2 Read 7f80330ff000 2 pages
+(00.309713) uffd: 1-10: uffd_copy: 0x7f80330ff000/8192
+(00.309725) pr1-2 Read 7f8033105000 1 pages
+(00.310102) uffd: 1-10: uffd_copy: 0x7f8033105000/4096
+(00.310113) pr1-2 Read 7f8033442000 1 pages
+(00.310487) uffd: 1-10: uffd_copy: 0x7f8033442000/4096
+(00.310498) pr1-2 Read 7f8033444000 1 pages
+(00.310906) uffd: 1-10: uffd_copy: 0x7f8033444000/4096
+(00.310918) pr1-2 Read 7f8033448000 2 pages
+(00.311297) uffd: 1-10: uffd_copy: 0x7f8033448000/8192
+(00.311310) pr1-2 Read 7f803344c000 3 pages
+(00.311706) uffd: 1-10: uffd_copy: 0x7f803344c000/12288
+(00.311721) pr1-2 Read 7f8033450000 1 pages
+(00.312066) uffd: 1-10: uffd_copy: 0x7f8033450000/4096
+(00.312078) pr1-2 Read 7f8033452000 1 pages
+(00.312425) uffd: 1-10: uffd_copy: 0x7f8033452000/4096
+(00.312438) pr1-2 Read 7f8033456000 1 pages
+(00.312807) uffd: 1-10: uffd_copy: 0x7f8033456000/4096
+(00.312820) pr1-2 Read 7f8033459000 1 pages
+(00.313168) uffd: 1-10: uffd_copy: 0x7f8033459000/4096
+(00.313180) pr1-2 Read 7f803345d000 1 pages
+(00.313532) uffd: 1-10: uffd_copy: 0x7f803345d000/4096
+(00.313541) uffd: 1-10: UFFD transferred pages: (326/326)
+real 0.32
+user 0.03
+sys 0.02
+runc restored python_bundle successfully
+

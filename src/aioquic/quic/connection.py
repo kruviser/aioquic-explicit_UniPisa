@@ -4,7 +4,7 @@ import os
 import sys  #DEBUG2**************
 import ipaddress #DEBUG2**************
 import time #PERF EV TIME INFO*
-import paramiko #PERF EV AUTOMATION V2* 
+from coapthon.client.helperclient import HelperClient #PERF EV AUTOMATION V2* 
 from threading import Thread #PERF EV AUTOMATION V2* 
 from collections import deque
 from dataclasses import dataclass
@@ -200,37 +200,23 @@ END_STATES = frozenset(
         QuicConnectionState.DRAINING,
         QuicConnectionState.TERMINATED,
     ]
-)
+)  
 
-##PERF EV AUTOMATION V2******  
-def ssh_command(mtype:int) -> None:
 
-    client_ssh = paramiko.SSHClient()
-    client_ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client_ssh.connect('172.16.4.4', username='ubuntu', password='tesiconforti')
+#PERF EV V2 AUTOMATION Client CoAP****
+def clientCoAP(mtype: int, list_addr_server) -> None:
 
-    command = "sudo python master/migrate_from_shell.py python_bundle 172.16.4.232"
-    if(mtype == 0):
-        command = command + " false false"  #cold migration
-    elif(mtype == 1):
-        command = command + " true false"   #pre-copy migration
-    elif(mtype == 2):
-        command = command + " false true"   #post-copy migration
-    elif(mtype == 3):
-        command = command + " true true"    #hybrid migration
+    client = HelperClient(server=(list_addr_server[1], 5683))
+    request = str(mtype) + ","+str(list_addr_server[0])+","+str(list_addr_server[1])
+    print(request)
+    
+    #response = client.put("basic",request)
+    #print(response.pretty_print())
+    
+    client.stop()
 
-    stdin, stdout, stderr = client_ssh.exec_command(command)
+#PERF EV V2 AUTOMATION Client CoAP*****
 
-    #time.sleep(0.1) #Added in order to resolve an error of paramiko library
-
-    for line in stdout:
-        print (line.strip('\n'))
-
-    for line_err in stderr:
-        print (line_err.strip('\n'))
-
-    client_ssh.close()
-##PERF EV AUTOMATION V2******  
 
 class QuicConnection:
     """
@@ -509,7 +495,7 @@ class QuicConnection:
         self._version = self._configuration.supported_versions[0]
         self._connect(now=now)
 
-    def datagrams_to_send(self, counter: int, hmstrategy: int, n_request_migration:int, interval_migration:int, now: float) -> List[Tuple[bytes, NetworkAddress]]:  #DEBUG2 TEST DEBUG V2* PERF EV AUTOMATION* DEBUG V3*      
+    def datagrams_to_send(self, counter: int, hmstrategy: int, n_request_migration: int, interval_migration: int, now: float) -> List[Tuple[bytes, NetworkAddress]]:  #DEBUG2 TEST DEBUG V2* PERF EV AUTOMATION* DEBUG V3*      
         """
         Return a list of `(data, addr)` tuples of datagrams which need to be
         sent, and the network address to which they need to be sent.
@@ -630,7 +616,7 @@ class QuicConnection:
             if sent_handshake and self._is_client:
                 self._discard_epoch(tls.Epoch.INITIAL)
 
-            print("PREPARE DATAGRAM TO SEND") #DEBUG*
+            #print("PREPARE DATAGRAM TO SEND") #DEBUG*
 
         # return datagrams to send and the destination network address
         ret = []
@@ -784,18 +770,21 @@ class QuicConnection:
 
         #PERF EV AUTOMATION V2*****     DEBUG V3********
         if not self._is_client and self._migration_type == -1 and len(self._list_addr_server) == 0: 
-            f = open("src/aioquic/quic/MigrationInformation.txt", "r")
+            f = open("src/aioquic/quic/MigrationInformation.txt", "r+") #/home/Trigger_v4/
             lines = f.readlines()
             c_line = 0
-            for line in lines:
+            for linefull in lines:
+                line = linefull.strip()
                 if c_line == 0:
                     self._migration_type = int(line)
                 else:
                     self._list_addr_server.append(line)
+                c_line=c_line+1
+            f.truncate(0)
             
-            print("MIGRATION INFORMATION")
-            print("MIGRATION TYPE" + self._migration_type)
-            print("LIST ADDRESSES SERVER" + self._list_addr_server)
+            #print("MIGRATION INFORMATION")
+            #print("MIGRATION TYPE" + str(self._migration_type))
+            #print("LIST ADDRESSES SERVER" + self._list_addr_server)
         #PERF EV AUTOMATION V2***** DEBUG V3********
 
         if self._quic_logger is not None:
@@ -1091,6 +1080,7 @@ class QuicConnection:
             if idx and not network_path == self._previous_server_address and not is_probing and packet_number > space.largest_received_packet:  #DEBUG2 TEST*
                 self._network_paths.pop(idx)
                 self._network_paths.insert(0, network_path)
+                self._network_paths.remove(self._previous_server_address)  #MAYBE
                 #PERF EV TIME INFO****
                 if self._is_client and self._initial_timestamp != 0:
                     self._final_timestamp = time.time()
@@ -1785,7 +1775,7 @@ class QuicConnection:
         stateless_reset_token = buf.pull_bytes(16)
 
 
-        print("PROCESS NEW CID FRAME") #DEBUG*
+        #print("PROCESS NEW CID FRAME") #DEBUG*
 
         # log frame
         if self._quic_logger is not None:
@@ -1931,7 +1921,7 @@ class QuicConnection:
                 reason_phrase="Response does not match challenge",
             )
         else:   #DEBUG2*
-            if self._previous_server_address is None:   #DEBUG2*
+            if self._previous_server_address is not None:   #DEBUG2*
                 print("MIGRATION SUCCESSFULLY TERMINATED")  #DEBUG2*
                 self._previous_server_address = None   #DEBUG2*
                 self._server_migration_address = None   #DEBUG2*
@@ -1948,7 +1938,7 @@ class QuicConnection:
         Handle a PING frame.
         """
 
-        print("PROCESS PING") #DEBUG*
+        #print("PROCESS PING") #DEBUG*
 
         # log frame
         if self._quic_logger is not None:
@@ -2082,7 +2072,7 @@ class QuicConnection:
         """
         sequence_number = buf.pull_uint_var()
 
-        print("PROCESS RETIRE CID FRAME") #DEBUG*
+        #print("PROCESS RETIRE CID FRAME") #DEBUG*
 
         # log frame
         if self._quic_logger is not None:
@@ -2335,8 +2325,12 @@ class QuicConnection:
         if delivery != QuicDeliveryState.ACKED:
             self._server_triggered_to_migrate = True
         else:
-            t1 = Thread(target=ssh_command, args=(self._migration_type,))
+            list_addr_server = self._list_addr_server
+            #PERF EV V2 AUTOMATION Client CoAP****
+            t1 = Thread(target=clientCoAP, args=(self._migration_type,list_addr_server,))
             t1.start()
+            #PERF EV V2 AUTOMATION Client CoAP*****
+            
             self._list_addr_server = list(reversed(self._list_addr_server))     
 
     #DEBUG2************************ #PERF EV AUTOMATION V2****** #DEBUG V3******
@@ -2381,7 +2375,7 @@ class QuicConnection:
         while not buf.eof():
             frame_type = buf.pull_uint_var()
 
-            print("FRAME TYPE: " + str(frame_type))   #DEBUG*
+            #print("FRAME TYPE: " + str(frame_type))   #DEBUG*
             cont+=1 #DEBUG*
             
             # check frame type is known
@@ -2421,7 +2415,7 @@ class QuicConnection:
             elif is_probing is None:
                 is_probing = True
 
-        print("NUMBER OF FRAMES PROCESSED:" + str(cont))  #DEBUG*
+        #print("NUMBER OF FRAMES PROCESSED:" + str(cont))  #DEBUG*
 
         return is_ack_eliciting, bool(is_probing)
 
@@ -2760,12 +2754,12 @@ class QuicConnection:
                 #DEBUG V2*********************
 
                 #DEBUG V3*********************
-                if self._n_request_migration == -1 and self._interval_migration == -1:
+                if self._is_client and self._n_request_migration == -1 and self._interval_migration == -1 and n_request_migration != 0 and interval_migration != 0:
                     self._n_request_migration = n_request_migration
                     self._interval_migration = interval_migration
 
                 #Condition for triggering
-                if counter == n_request_migration: #and self._first_time_trigger:
+                if self._is_client and counter == self._n_request_migration: #and self._first_time_trigger:
                     if not self._trigger_period:
                         self._trigger_period = True
                     self._n_request_migration = self._n_request_migration + self._interval_migration
@@ -2895,7 +2889,7 @@ class QuicConnection:
         ack_delay = now - space.largest_received_time
         ack_delay_encoded = int(ack_delay * 1000000) >> self._local_ack_delay_exponent
 
-        print("WRITE ACK FRAME") #DEBUG*
+        #print("WRITE ACK FRAME") #DEBUG*
 
         buf = builder.start_frame(
             QuicFrameType.ACK,
@@ -2980,7 +2974,7 @@ class QuicConnection:
                 limit.value *= 2
                 self._logger.debug("Local %s raised to %d", limit.name, limit.value)
             if limit.value != limit.sent:
-                print("WRITE CONNECTION'S LIMIT FRAME") #DEBUG*
+                #print("WRITE CONNECTION'S LIMIT FRAME") #DEBUG*
                 buf = builder.start_frame(
                     limit.frame_type,
                     capacity=CONNECTION_LIMIT_FRAME_CAPACITY,
@@ -3004,7 +2998,7 @@ class QuicConnection:
         frame_overhead = 3 + size_uint_var(stream.next_send_offset)
         frame = stream.get_frame(builder.remaining_flight_space - frame_overhead)
         if frame is not None:
-            print("WRITE CRYPTO FRAME") #DEBUG*
+            #print("WRITE CRYPTO FRAME") #DEBUG*
             buf = builder.start_frame(
                 QuicFrameType.CRYPTO,
                 capacity=frame_overhead,
@@ -3036,7 +3030,7 @@ class QuicConnection:
         length = len(data)
         frame_size = 1 + size_uint_var(length) + length
 
-        print("WRITE DATAGRAM FRAME") #DEBUG*
+        #print("WRITE DATAGRAM FRAME") #DEBUG*
         buf = builder.start_frame(frame_type, capacity=frame_size)
         buf.push_uint_var(length)
         buf.push_bytes(data)
@@ -3050,7 +3044,7 @@ class QuicConnection:
         return True
 
     def _write_handshake_done_frame(self, builder: QuicPacketBuilder) -> None:
-        print("WRITE HANDSHAKE DONE FRAME") #DEBUG*
+        #print("WRITE HANDSHAKE DONE FRAME") #DEBUG*
         builder.start_frame(
             QuicFrameType.HANDSHAKE_DONE,
             capacity=HANDSHAKE_DONE_FRAME_CAPACITY,
@@ -3068,7 +3062,7 @@ class QuicConnection:
     ) -> None:
         retire_prior_to = 0  # FIXME
 
-        print("WRITE NEW CID FRAME") #DEBUG*
+        #print("WRITE NEW CID FRAME") #DEBUG*
 
         buf = builder.start_frame(
             QuicFrameType.NEW_CONNECTION_ID,
@@ -3131,7 +3125,7 @@ class QuicConnection:
     def _write_ping_frame(
         self, builder: QuicPacketBuilder, uids: List[int] = [], comment=""
     ):
-        print("WRITE PING FRAME") #DEBUG*
+        #print("WRITE PING FRAME") #DEBUG*
         builder.start_frame(
             QuicFrameType.PING,
             capacity=PING_FRAME_CAPACITY,
@@ -3217,7 +3211,7 @@ class QuicConnection:
         self, builder: QuicPacketBuilder, frame_type: QuicFrameType, stream: QuicStream,
     ) -> None:
 
-        print("WRITE RESET STREAM FRAME") #DEBUG*
+        #print("WRITE RESET STREAM FRAME") #DEBUG*
         buf = builder.start_frame(
             frame_type=frame_type,
             capacity=RESET_STREAM_CAPACITY,
@@ -3249,7 +3243,7 @@ class QuicConnection:
         )
         buf.push_uint_var(sequence_number)
 
-        print("WRITE RETIRE CID FRAME") #DEBUG*
+        #print("WRITE RETIRE CID FRAME") #DEBUG*
 
         # log frame
         if self._quic_logger is not None:
@@ -3283,7 +3277,7 @@ class QuicConnection:
             if frame.fin:
                 frame_type |= 1
 
-            print("WRITE STREAM FRAME") #DEBUG*
+            #print("WRITE STREAM FRAME") #DEBUG*
             buf = builder.start_frame(
                 frame_type,
                 capacity=frame_overhead,
@@ -3329,7 +3323,7 @@ class QuicConnection:
                 stream.max_stream_data_local,
             )
         if stream.max_stream_data_local_sent != stream.max_stream_data_local:
-            print("WRITE STREAM'S LIMITS FRAME") #DEBUG*
+            #print("WRITE STREAM'S LIMITS FRAME") #DEBUG*
 
             buf = builder.start_frame(
                 QuicFrameType.MAX_STREAM_DATA,
@@ -3353,7 +3347,7 @@ class QuicConnection:
         self, builder: QuicPacketBuilder, frame_type: QuicFrameType, limit: int
     ) -> None:
 
-        print("WRITE STREAMS BLOCKED FRAME") #DEBUG*
+        #print("WRITE STREAMS BLOCKED FRAME") #DEBUG*
         buf = builder.start_frame(frame_type, capacity=STREAMS_BLOCKED_CAPACITY)
         buf.push_uint_var(limit)
 

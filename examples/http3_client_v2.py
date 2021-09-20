@@ -5,6 +5,7 @@ import os
 import pickle
 import sys
 import ssl
+import socket    #DEBUG2 TEST*******************
 import time
 from collections import deque
 from typing import Callable, Deque, Dict, List, Optional, Union, cast
@@ -130,20 +131,20 @@ class HttpClient(QuicConnectionProtocol):
         else:
             self._http = H3Connection(self._quic)
 
-    async def get(self, url: str, counter:int, n_request_migration:int, interval_migration:int,  headers: Dict = {} ) -> Deque[H3Event]:   #DEBUG2 TEST* DEBUG V2* #PERF EV AUTOMATION* DEBUG V3*
+    async def get(self, url: str, counter:int, hmstrategy:int, n_request_migration:int, interval_migration:int,  headers: Dict = {} ) -> Deque[H3Event]:   #DEBUG2 TEST* DEBUG V2* #PERF EV AUTOMATION* DEBUG V3*
         """ 
         Perform a GET request.
         """
         return await self._request(
-            HttpRequest(method="GET", url=URL(url), headers=headers), counter, n_request_migration, interval_migration   #DEBUG2 TEST* DEBUG V2* #PERF EV AUTOMATION* DEBUG V3*
+            HttpRequest(method="GET", url=URL(url), headers=headers), counter, hmstrategy, n_request_migration, interval_migration   #DEBUG2 TEST* DEBUG V2* #PERF EV AUTOMATION* DEBUG V3*
         )
 
-    async def post(self, url: str, data: bytes, counter:int, n_request_migration:int, interval_migration:int,  headers: Dict = {} ) -> Deque[H3Event]:   #DEBUG2 TEST* DEBUG V2* #PERF EV AUTOMATION* DEBUG V3*
+    async def post(self, url: str, data: bytes, counter:int, hmstrategy:int, n_request_migration:int, interval_migration:int,  headers: Dict = {} ) -> Deque[H3Event]:   #DEBUG2 TEST* DEBUG V2* #PERF EV AUTOMATION* DEBUG V3*
         """
         Perform a POST request.
         """
         return await self._request(
-            HttpRequest(method="POST", url=URL(url), content=data, headers=headers), counter, n_request_migration, interval_migration   #DEBUG2 TEST* DEBUG V2* #PERF EV AUTOMATION* DEBUG V3*
+            HttpRequest(method="POST", url=URL(url), content=data, headers=headers), counter, hmstrategy, n_request_migration, interval_migration   #DEBUG2 TEST* DEBUG V2* #PERF EV AUTOMATION* DEBUG V3*
         )
 
     async def websocket(self, url: str, subprotocols: List[str] = []) -> WebSocket:
@@ -206,7 +207,8 @@ class HttpClient(QuicConnectionProtocol):
             for http_event in self._http.handle_event(event):
                 self.http_event_received(http_event)
 
-    async def _request(self, request: HttpRequest, counter:int, n_request_migration:int, interval_migration:int ):    #DEBUG2 TEST* DEBUG V2* PERF EV AUTOMATION* DEBUG V3* 
+    async def _request(self, request: HttpRequest, counter:int, hmstrategy:int, n_request_migration:int, interval_migration:int ):    #DEBUG2 TEST* DEBUG V2* PERF EV AUTOMATION* DEBUG V3*
+
         stream_id = self._quic.get_next_available_stream_id()
         self._http.send_headers(
             stream_id=stream_id,
@@ -225,15 +227,16 @@ class HttpClient(QuicConnectionProtocol):
         self._request_events[stream_id] = deque()
         self._request_waiter[stream_id] = waiter
 
-        self.transmit(counter = counter, n_request_migration = n_request_migration, interval_migration = interval_migration)    #DEBUG2 TEST* DEBUG V2* PERF EV AUTOMATION* DEBUG V3*
+        self.transmit(counter = counter, hmstrategy = hmstrategy, n_request_migration = n_request_migration, interval_migration = interval_migration)    #DEBUG2 TEST* DEBUG V2* PERF EV AUTOMATION* DEBUG V3*
 
         return await asyncio.shield(waiter)
 
 
 async def perform_http_request(
-    client: HttpClient, url: str, data: str, include: bool, output_dir: Optional[str], counter: int, n_request_migration: int, interval_migration: int #DEBUG2 TEST* DEBUG V2* PERF EV AUTOMATION* DEBUG V3*       
+    client: HttpClient, url: str, data: str, include: bool, output_dir: Optional[str], counter: int, hmstrategy: int, n_request_migration: int, interval_migration: int #DEBUG2 TEST* DEBUG V2* PERF EV AUTOMATION* DEBUG V3*  
 ) -> None: 
     # perform request
+
     start = time.time()
     if data is not None:
         http_events = await client.post(
@@ -245,7 +248,7 @@ async def perform_http_request(
             headers={"content-type": "application/x-www-form-urlencoded"},
         )
     else:
-        http_events = await client.get(url, counter, n_request_migration, interval_migration)   #DEBUG2 TEST* DEBUG V2* PERF EV AUTOMATION* DEBUG V3*
+        http_events = await client.get(url, counter, hmstrategy, n_request_migration, interval_migration)   #DEBUG2 TEST* DEBUG V2* PERF EV AUTOMATION* DEBUG V3*
     elapsed = time.time() - start
 
     # print speed
@@ -295,6 +298,7 @@ async def run(
     local_port: int,
     zero_rtt: bool,
     n_requests:int, #DEBUG V2
+    hmstrategy:int, #DEBUG V2*
     n_request_migration:int, #PERF EV AUTOMATION*
     interval_migration:int, #DEBUG V3*
     request_type:int, #DEBUG V4*
@@ -338,13 +342,13 @@ async def run(
 
             await ws.close()
         else:
+
             # perform request
             cont = 0        #DEBUG*
             diff_timestamp=0 #DEBUG V4*
-            while(cont < n_requests):  #DEBUG*
-                
+            while(cont < n_requests):  #DEBUG V2
+
                 print("NUMBER REQUEST --> " + str(cont+1))
-                
                 #DEBUG V4*****
                 if request_type == 1 and diff_timestamp!=0: 
                     print("CLIENT IS SLEEPING")
@@ -352,6 +356,8 @@ async def run(
 
                 initial_timestamp = time.time() 
                 #DEBUG V4*****
+
+                
                 coros = [
                     perform_http_request(
                         client=client,
@@ -360,6 +366,7 @@ async def run(
                         include=include,
                         output_dir=output_dir,
                         counter = cont, #DEBUG2 TEST*
+                        hmstrategy = hmstrategy, #DEBUG V2*
                         n_request_migration = n_request_migration, #PERF EV AUTOMATION* 
                         interval_migration = interval_migration, #DEBUG V3
                     )
@@ -442,7 +449,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--zero-rtt", action="store_true", help="try to send requests using 0-RTT"
     )
-    #DEBUG V2****
+    #DEBUG V2*****
+    parser.add_argument(
+        "--handle_migration_strategy",
+        type=int,
+        help="Strategy to decide how handle the migration of the server at the client side: 1-FAST: as soon as ack sent --- 0:SLOW: after the first packet lost",
+    )
     parser.add_argument(
         "-n",
         "--n_requests",
@@ -476,6 +488,7 @@ if __name__ == "__main__":
         help="Timeout between each request used if request type is different from 0",
     )
     #DEBUG V4*****
+
 
     args = parser.parse_args()
 
@@ -515,6 +528,13 @@ if __name__ == "__main__":
             pass
 
     #DEBUG V2*****
+    if args.data is not None and args.handle_migration_strategy is None:
+        print("You have to insert the migration strategy")
+        sys.exit()
+    args.handle_migration_strategy = 0  #Parameter not used
+    if args.handle_migration_strategy < 0 or args.handle_migration_strategy > 1:
+        print("You have to insert the correct type of migration strategy: 1-FAST: as soon as ack sent --- 0:SLOW: after the first packet lost")
+        sys.exit()
     if args.data is not None and args.n_requests is None:
         print("You have to insert the number of requests made by C to S during the connection")
         sys.exit()
@@ -535,10 +555,11 @@ if __name__ == "__main__":
         sys.exit()
     if args.request_interval is None:
         args.request_interval = 0
-    if args.request_type != 0 and or args.request_interval <= 0:
+    if args.request_type != 0 and args.request_interval <= 0:
         print("With this type of request, the interval between request has to be greater than 0")
         sys.exit()
     #DEBUG V4******
+
 
     if uvloop is not None:
         uvloop.install()
@@ -553,9 +574,10 @@ if __name__ == "__main__":
             local_port=args.local_port,
             zero_rtt=args.zero_rtt,
             n_requests = args.n_requests,   #DEBUG V2*
+            hmstrategy = args.handle_migration_strategy,   #DEBUG V2*
             n_request_migration = args.n_request_migration, #PERF EV AUTOMATION*
             interval_migration = args.interval_migration, #DEBUG V3*
-            request_type = args.request_type, #DEBUG V3*
-            request_interval = args.request_interval, #DEBUG V3*
+            request_type = args.request_type, #DEBUG V4*
+            request_interval = args.request_interval, #DEBUG V4*
         )
     )

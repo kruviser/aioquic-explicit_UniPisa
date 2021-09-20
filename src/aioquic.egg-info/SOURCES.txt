@@ -15,6 +15,7 @@ examples/demo.py
 examples/doq_client.py
 examples/doq_server.py
 examples/http3_client.py
+examples/http3_client_v2.py
 examples/http3_server.py
 examples/httpx_client.py
 examples/interop.py

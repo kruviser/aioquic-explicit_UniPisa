@@ -480,7 +480,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--request_type",
         type=int,
-        help="Type of requests from the Client to the Server: 0 --> back to back, 1: interval between each requests, 2: ",
+        help="Type of requests from the Client to the Server: 0 --> back to back, 1: interval between each requests",
     )
     parser.add_argument(
         "--request_interval",
@@ -550,7 +550,7 @@ if __name__ == "__main__":
         sys.exit()
     #DEBUG V3******
     #DEBUG V4******
-    if args.request_type < 0 or args.request_type > 2:
+    if args.request_type < 0 or args.request_type > 1:
         print("The value of the type of the request has to be between 0 and 2")
         sys.exit()
     if args.request_interval is None:

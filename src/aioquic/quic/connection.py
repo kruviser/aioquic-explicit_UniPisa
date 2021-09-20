@@ -210,8 +210,8 @@ def clientCoAP(mtype: int, list_addr_server) -> None:
     request = str(mtype) + ","+str(list_addr_server[0])+","+str(list_addr_server[1])
     print(request)
     
-    #response = client.put("basic",request)
-    #print(response.pretty_print())
+    response = client.put("basic",request)
+    print(response.pretty_print())
     
     client.stop()
 

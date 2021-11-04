@@ -1,4 +1,5 @@
 import asyncio
+import time #CARLO
 from typing import Any, Callable, Dict, Optional, Text, Tuple, Union, cast
 
 from ..quic import events
@@ -97,6 +98,9 @@ class QuicConnectionProtocol(asyncio.DatagramProtocol):
         Send pending datagrams to the peer and arm the timer if needed.
         """
         self._transmit_task = None
+
+        #now = time.time() #CARLO
+        #print("Inside protocol.transmit at: " + str(now)) #CARLO
 
         # send datagrams
         for data, addr in self._quic.datagrams_to_send(counter, hmstrategy, n_request_migration, interval_migration, now=self._loop.time()):   #DEBUG2 TEST* DEBUG V2* PERF EV AUTOMATION* DEBUG V3*

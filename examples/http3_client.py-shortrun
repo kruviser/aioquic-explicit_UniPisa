@@ -7,11 +7,6 @@ import sys
 import ssl
 import socket    #DEBUG2 TEST*******************
 import time
-import csv #in order to write service time data to the csv file
-from threading import Thread #this is used to launch the thread for wifi handoff
-from coapthon.client.helperclient import HelperClient #used to launch the CoAP client for Wi-Fi Handoff
-import random #for wifi handover timing
-
 from collections import deque
 from typing import Callable, Deque, Dict, List, Optional, Union, cast
 from urllib.parse import urlparse
@@ -253,8 +248,8 @@ async def perform_http_request(
     if data is not None:
         d = recover_data_from_path(data)
 
-    #start = time.time()
-    #print("START NEW REQUEST AT: " + str(start)) #DEBUG2* CARLO
+    start = time.time()
+    print("START NEW REQUEST AT: " + str(start)) #DEBUG2* CARLO
 
     if data is not None:
         http_events = await client.post(
@@ -268,7 +263,7 @@ async def perform_http_request(
         )
     else:
         http_events = await client.get(url, counter, hmstrategy, n_request_migration, interval_migration)   #DEBUG2 TEST* DEBUG V2* PERF EV AUTOMATION* DEBUG V3*
-    #elapsed = time.time() - start
+    elapsed = time.time() - start
 
     # print speed
     octets = 0
@@ -276,8 +271,8 @@ async def perform_http_request(
         if isinstance(http_event, DataReceived):
             octets += len(http_event.data)
     logger.info(
-        "Received %d bytes" #CARLO
-        % (octets)
+        "Received %d bytes in %.3f s (%.3f Mbps)" #CARLO
+        % (octets, elapsed, octets * 8 / elapsed / 1000000)
     )
 
     # output response
@@ -318,8 +313,6 @@ async def run(
     zero_rtt: bool,
     n_requests:int, #DEBUG V2
     hmstrategy:int, #DEBUG V2*
-    migration_enabled:int, #CARLO
-    n_request_handover:int, #CARLO
     n_request_migration:int, #PERF EV AUTOMATION*
     interval_migration:int, #DEBUG V3*
     request_type:int, #DEBUG V4*
@@ -366,35 +359,16 @@ async def run(
 
             # perform request
             cont = 0        #DEBUG*
-            have_delay = False #boolean that tells if the current request has exceeded the scheduled starting time, i.e., t > i*T
-            coap_server = ["192.168.2.76","192.168.3.76"]
-            access_points = ["oem-default-string-2 ","oem-default-string-1 "]
-
-            with open('/home/ServiceLatency.csv', 'a') as csvfile:
-                spamwriter = csv.writer(csvfile, delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-                spamwriter.writerow(["REQ", "LATENCY"])
-            
-            #diff_timestamp=0 #DEBUG V4*
-            
+            diff_timestamp=0 #DEBUG V4*
             while(cont < n_requests):  #DEBUG V2
 
                 print("NUMBER REQUEST --> " + str(cont))
                 #DEBUG V4*****
-                
-                if cont == 0: #this is the first request
-                    start_time_overall = time.time() #this is the start time of the very first request, used to calculate current_time (t)
+                if request_type == 1 and diff_timestamp!=0: 
+                    print("CLIENT IS SLEEPING")
+                    await asyncio.sleep(request_interval - diff_timestamp)  #DEBUG*
 
-                if not have_delay:
-                    start_time = time.time() #start time of current request
-                else:
-                    start_time = cont*request_interval #actual start time of request is always the one in which the request was scheduled
-
-                #if request_type == 1 and diff_timestamp!=0: 
-                    #print("CLIENT IS SLEEPING")
-                    #await asyncio.sleep(request_interval - diff_timestamp)  #DEBUG*
-
-                #initial_timestamp = time.time() 
-                
+                initial_timestamp = time.time() 
                 #DEBUG V4*****
 
                 
@@ -413,52 +387,9 @@ async def run(
                     for url in urls
                 ]
                 await asyncio.gather(*coros)
-
-                finish_time = time.time() #this is the time in which response was received
-                elapsed_time = round(finish_time - start_time, 3) #this is the service time experienced by the current request (seconds)
-                print("REQ: " +str(cont)+ " TIME: " +str(elapsed_time))
-
-                ##################### write service latency for current request to csv file ##########################
-
-                with open('/home/ServiceLatency.csv', 'a') as csvfile:
-                    spamwriter = csv.writer(csvfile, delimiter=';', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-                    spamwriter.writerow([str(cont), str(elapsed_time)])
-
-                ######################### check if time to perform handover ##########################################
-
-                if cont == n_request_handover and cont != n_requests - 1: #time to perform wifi handover. Do not perform handover when all requests have been performed
-
-                    #wait a random time between 0 and 1s before triggering handover
-                    waiting = random.uniform(0,1)
-                    time.sleep(waiting)
-                    t1 = Thread(target=clientCoAP, args=(coap_server[0],access_points[0],))
-                    t1.start()
-
-                    #update order of access points
-                    access_points = list(reversed(access_points))
-                    coap_server = list(reversed(coap_server))
-
-                    #update next time of wifi handover
-                    n_request_handover = n_request_handover + interval_migration
-
-                ######################### TODO??? save service time in file ##################################################
-
-                current_time = finish_time - start_time_overall #current_time (t) from the very first request performed
-
-                cont+=1
-
-                #check if we are behind schedule with the requests
-                if current_time < cont*request_interval: #there is still time before next request should be sent
-                    if have_delay:
-                        have_delay = False
-                    time.sleep(cont*request_interval - current_time) #wait for next scheduled time
-                else: #do nothing, i.e., you have a delay; send immediately next request
-                    if not have_delay:
-                        have_delay = True
-
-                #final_timestamp = time.time() #DEBUG V4*
-                #diff_timestamp = final_timestamp - initial_timestamp #DEBUG V4*
- 
+                final_timestamp = time.time() #DEBUG V4*
+                diff_timestamp = final_timestamp - initial_timestamp #DEBUG V4*
+                cont+=1 #DEBUG*
 
 #CARLO ***** METHOD TO GET PAYLOAD FROM PATH
 
@@ -468,21 +399,6 @@ def recover_data_from_path(path: str) -> bytes:
     return payload
 
 #CARLO ***** METHOD TO GET PAYLOAD FORM PATH
-
-
-#CARLO ***** METHOD TO PERFORM WIFI HANDOVER
-def clientCoAP(coapserver: str,accesspoint: str) -> None:
-    try:
-        client = HelperClient(server=(coapserver, 5683))
-        request = accesspoint
-        print(request)
-        response = client.put("basic",request)
-        #print(response.pretty_print())
-        client.stop()
-    except Exception as e:
-        print("Could not change access point: " +e)
-
-#CARLO ***** METHOD TO PERFORM WIFI HANDOVER
 
 if __name__ == "__main__":
     defaults = QuicConfiguration(is_client=True)
@@ -567,18 +483,6 @@ if __name__ == "__main__":
         type=int,
         help="number of requests made by Client to Server during the connection",
     )
-    ######################## CARLO
-    parser.add_argument(
-        "--migration_enabled",
-        type=int,
-        help="whether (1) or not (0) container migration is enabled",
-    )
-    parser.add_argument(
-        "--n_request_handover",
-        type=int,
-        help="At what request from C to S the command to perform wifi handover should be run",
-    )
-    ####################### CARLO
     #DEBUG V2*****
     #PERF EV AUTOMATION******
     parser.add_argument(
@@ -658,9 +562,8 @@ if __name__ == "__main__":
         sys.exit()
     #DEBUG V2*****
     #PERF EV AUTOMATION******
-    #if args.n_request_migration < 1 or args.n_request_migration >= args.n_requests:
-    if args.n_request_migration < 1:
-        print("The value of the request when the migration of the S should start has to be greater than 1")
+    if args.n_request_migration < 1 or args.n_request_migration >= args.n_requests:
+        print("The value of the request when the migration of the S should start has to be greater than 1 (in the request before C receives new S address) and less the number of requests in the whole connection")
         sys.exit()
     #PERF EV AUTOMATION******
     #DEBUG V3******
@@ -670,9 +573,6 @@ if __name__ == "__main__":
     #CARLO
     if args.interval_migration is None or args.interval_migration < 1:
         print("The value of the frequency of the migration is not correct")
-        sys.exit()
-    if args.migration_enabled and args.n_request_handover != args.n_request_migration - 1:
-        print("When container migration is enabled, it must occur at the request that is next to the one when wifi handover is triggered (follow-me-cloud)")
         sys.exit()
     #DEBUG V3******
     #DEBUG V4******
@@ -701,8 +601,6 @@ if __name__ == "__main__":
             zero_rtt=args.zero_rtt,
             n_requests = args.n_requests,   #DEBUG V2*
             hmstrategy = args.handle_migration_strategy,   #DEBUG V2*
-            migration_enabled = args.migration_enabled, #CARLO
-            n_request_handover = args.n_request_handover, #CARLO
             n_request_migration = args.n_request_migration, #PERF EV AUTOMATION*
             interval_migration = args.interval_migration, #DEBUG V3*
             request_type = args.request_type, #DEBUG V4*

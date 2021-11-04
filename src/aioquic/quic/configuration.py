@@ -29,6 +29,7 @@ class QuicConfiguration:
     """
 
     idle_timeout: float = 60.0
+    #idle_timeout: float = 0.0
     """
     The idle timeout in seconds.
 

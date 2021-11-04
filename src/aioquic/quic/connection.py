@@ -4,7 +4,7 @@ import os
 import sys  #DEBUG2**************
 import ipaddress #DEBUG2**************
 import time #PERF EV TIME INFO*
-from coapthon.client.helperclient import HelperClient #PERF EV AUTOMATION V2* 
+from coapthon.client.helperclient import HelperClient #PERF EV AUTOMATION V2*
 from threading import Thread #PERF EV AUTOMATION V2* 
 from collections import deque
 from dataclasses import dataclass
@@ -206,11 +206,14 @@ END_STATES = frozenset(
 #PERF EV V2 AUTOMATION Client CoAP****
 def clientCoAP(mtype: int, list_addr_server) -> None:
 
+    print("Before connecting to CoAP server")
     client = HelperClient(server=(list_addr_server[1], 5683))
+    print("After connecting to CoAP server")
     request = str(mtype) + ","+str(list_addr_server[0])+","+str(list_addr_server[1])
     print(request)
     
     response = client.put("basic",request)
+    print("Received response from CoAP server")
     print(response.pretty_print())
     
     client.stop()
@@ -351,6 +354,7 @@ class QuicConnection:
         self._n_request_migration = -1 #DEBUG V3*
         self._interval_migration = -1 #DEBUG V3*
         self._list_addr_server = [] #DEBUG V3*
+        self._synched = False    #Update FAST VERSION
 
         if self._is_client:
             self._original_destination_connection_id = self._peer_cid.cid
@@ -506,22 +510,18 @@ class QuicConnection:
         :param now: The current time.
         """
 
-        #PERF EV TIME INFO****
-        if self._is_client and  not self._change_addr_fast and self._loss._pto_count == 1 and self._final_timestamp == 0:
-            print("PRENDO TEMPO INIZIALE")
+        #PERF EV TIME INFO****      #Update FAST VERSION
+        #if self._is_client and  not self._change_addr_fast and self._loss._pto_count == 1 and self._final_timestamp == 0:              LUCA
+        if self._is_client and not self._migration_strategy_fast and self._loss._pto_count == 1 and self._final_timestamp == 0 and self._initial_timestamp == 0 and self._server_migration_address is not None: #Update FAST VERSION CARLO
             self._initial_timestamp = time.time()
-        
-        if self._is_client and self._change_addr_fast and self._server_migration_address is not None and self._final_timestamp == 0:  
-            network_path_server_migration = self._find_network_path(self._server_migration_address)
-            idx = self._network_paths.index(network_path_server_migration)
-            if idx == 0:
-                print("PRENDO TEMPO INIZIALE")
-                self._initial_timestamp = time.time()
-        #PERF EV TIME INFO****
+            print("PRENDO TEMPO INIZIALE SLOW: " + str(self._initial_timestamp))
+        #PERF EV TIME INFO****     #Update FAST VERSION
 
         network_path = self._network_paths[0]
+        #print(network_path) #CARLO
 
         if self._state in END_STATES:
+            #print("In end state") #CARLO
             return []
 
         # build datagrams
@@ -564,6 +564,9 @@ class QuicConnection:
 
             # limit data on un-validated network paths
             if not network_path.is_validated:
+                #print("Network path is not validated") #CARLO
+                #print("Bytes received on unvalidated path until now: " +str(network_path.bytes_received)) #CARLO
+                #print("Bytes sent until now to unvalidated network path: " +str(network_path.bytes_sent)) #CARLO
                 builder.max_total_bytes = (
                     network_path.bytes_received * 3 - network_path.bytes_sent
                 )
@@ -576,6 +579,8 @@ class QuicConnection:
             except QuicPacketBuilderStop:
                 pass
 
+
+        #print("Calling builder.flush") #CARLO
         datagrams, packets = builder.flush()
 
         if datagrams:
@@ -616,8 +621,13 @@ class QuicConnection:
             if sent_handshake and self._is_client:
                 self._discard_epoch(tls.Epoch.INITIAL)
 
-            #print("PREPARE DATAGRAM TO SEND") #DEBUG*
+            #now = time.time() #CARLO
+            #print("PREPARE DATAGRAM TO SEND AT: " + str(now)) #DEBUG* CARLO
 
+        #else:
+            #now = time.time()
+            #print("No datagrams to send at: " +str(now)) #CARLO
+        
         # return datagrams to send and the destination network address
         ret = []
         for datagram in datagrams:
@@ -635,25 +645,19 @@ class QuicConnection:
             #DEBUG2*************
             '''
 
-            #DEBUG2 DEBUG V2*************
+            #DEBUG2 DEBUG V2 - Update FAST VERSION CARLO*************
             
-            if self._is_client and not self._change_addr_fast and self._loss._pto_count > 0 and self._server_migration_address is not None:    
-                ret.append((datagram,self._server_migration_address.addr))
+            if self._is_client and not self._migration_strategy_fast and self._loss._pto_count > 0 and self._server_migration_address is not None:    
+                ret.append((datagram,self._server_migration_address.addr)) #case of Explicit - Loss during migration (after a packet to the old is lost)
+                print("1 " +str(self._server_migration_address.addr))
+            elif self._is_client and self._synched and self._server_migration_address is not None:
+                ret.append((datagram,self._server_migration_address.addr)) #case of Explicit - No Loss during migration (after ack to the SERVER MIGRATION FRAME was sent)
+                print("2 " +str(self._server_migration_address.addr))
             else:
-                ret.append((datagram, network_path.addr))
+                ret.append((datagram, network_path.addr)) #normal situation of both client and server
+                print("3 " +str(network_path.addr))
 
-            #DEBUG2 DEBUG V2*************
-
-            #DEBUG V2***********
-            
-            if self._is_client and self._change_addr_fast and self._server_migration_address is not None:  
-                network_path_server_migration = self._find_network_path(self._server_migration_address)
-                idx = self._network_paths.index(network_path_server_migration)
-                if idx and not network_path_server_migration == self._previous_server_address:
-                    self._network_paths.pop(idx)
-                    self._network_paths.insert(0, network_path_server_migration)
-
-            #DEBUG V2***********
+            #DEBUG2 DEBUG V2 - Update FAST VERSION CARLO*************
 
 
             if self._quic_logger is not None:
@@ -662,6 +666,18 @@ class QuicConnection:
                     event="datagrams_sent",
                     data={"byte_length": byte_length, "count": 1},
                 )
+
+        if self._change_addr_fast:
+            #Update FAST VERSION CARLO
+            #this is used in the NoLoss version to indicate that ack to the SERVER MIGRATION frame was sent to the old address of the server
+            #from now on and until reception of non-probing frame from new server address, packets will be sent to the server_migration_address
+            self._synched = True
+            self._change_addr_fast = False
+
+        # Update FAST VERSION CARLO - let the ack to the server migration frame be sent before changing address
+        if self._is_client and self._migration_strategy_fast and not self._synched and self._server_migration_address is not None:
+            #print("SERVER MIGRATION FRAME received - ready to send ack")
+            self._change_addr_fast = True
 
         return ret
 
@@ -770,7 +786,7 @@ class QuicConnection:
 
         #PERF EV AUTOMATION V2*****     DEBUG V3********
         if not self._is_client and self._migration_type == -1 and len(self._list_addr_server) == 0: 
-            f = open("src/aioquic/quic/MigrationInformation.txt", "r+") #/home/Trigger_v4/
+            f = open("/home/Trigger/src/aioquic/quic/MigrationInformation.txt", "r+") #/home/Trigger_v4/
             lines = f.readlines()
             c_line = 0
             for linefull in lines:
@@ -1077,17 +1093,36 @@ class QuicConnection:
             if network_path not in self._network_paths:
                 self._network_paths.append(network_path)
             idx = self._network_paths.index(network_path)
-            if idx and not network_path == self._previous_server_address and not is_probing and packet_number > space.largest_received_packet:  #DEBUG2 TEST*
+            
+            #DEBUG2 TEST* Update FAST VERSION CARLO - client case
+            if self._is_client and idx and not is_probing and packet_number > space.largest_received_packet and self._server_migration_address is not None:
+                if network_path.addr == self._server_migration_address.addr: #good situation - accept datagram and set new address as primary 
+                    self._network_paths.pop(idx)
+                    self._network_paths.insert(0, network_path) #set to primary
+                    print("New primary address was set")
+                    print(str(self._network_paths[0]))
+                    #self._network_paths.remove(self._previous_server_address)
+                    if self._network_paths[0].is_validated:
+                        if self._previous_server_address is not None:   #DEBUG2*
+                            print("MIGRATION SUCCESSFULLY TERMINATED")  #DEBUG2*
+                            self._previous_server_address = None   #DEBUG2*
+                            self._server_migration_address = None   #DEBUG2*
+                            if self._migration_strategy_fast: #case Explicit - No Loss
+                                self._synched = False
+                    if not self._migration_strategy_fast: # case R-Explicit
+                        #PERF EV TIME INFO****
+                        if self._initial_timestamp != 0:
+                            self._final_timestamp = time.time()
+                            print("DELTA SERVER MIGRATION:")
+                            print(self._final_timestamp - self._initial_timestamp)
+                            self._initial_timestamp = 0
+                            self._final_timestamp = 0
+                        #PERF EV TIME INFO****
+              
+            #DEBUG2 TEST* Update FAST VERSION CARLO - server case
+            elif not self._is_client and idx and not is_probing and packet_number > space.largest_received_packet:
                 self._network_paths.pop(idx)
-                self._network_paths.insert(0, network_path)
-                self._network_paths.remove(self._previous_server_address)  #MAYBE
-                #PERF EV TIME INFO****
-                if self._is_client and self._initial_timestamp != 0:
-                    self._final_timestamp = time.time()
-                    print("DELTA SERVER MIGRATION:")
-                    print(self._final_timestamp - self._initial_timestamp)
-                #PERF EV TIME INFO****
-
+                self._network_paths.insert(0, network_path) #set to primary   
 
             # record packet as received
             if not space.discarded:
@@ -1887,7 +1922,8 @@ class QuicConnection:
         """
         data = buf.pull_bytes(8)
 
-        print("PROCESS PATH CHALLENGE") #DEBUG*
+        now = time.time() #CARLO
+        print("Process PATH CHALLENGE FRAME at: " + str(now)) #DEBUG2* CARLO
         
 
         # log frame
@@ -1906,7 +1942,8 @@ class QuicConnection:
         """
         data = buf.pull_bytes(8)
 
-        print("PROCESS PATH RESPONSE") #DEBUG*
+        now = time.time() #CARLO
+        print("PROCESS PATH RESPONSE FRAME at: " + str(now)) #DEBUG2* CARLO
 
         # log frame
         if self._quic_logger is not None:
@@ -1925,6 +1962,8 @@ class QuicConnection:
                 print("MIGRATION SUCCESSFULLY TERMINATED")  #DEBUG2*
                 self._previous_server_address = None   #DEBUG2*
                 self._server_migration_address = None   #DEBUG2*
+                if self._migration_strategy_fast: #case Explicit - No Loss
+                    self._synched = False
 
         self._logger.debug(
             "Network path %s validated by challenge", context.network_path.addr
@@ -1938,7 +1977,8 @@ class QuicConnection:
         Handle a PING frame.
         """
 
-        #print("PROCESS PING") #DEBUG*
+        now = time.time() #CARLO
+        print("Process PING FRAME at: " + str(now)) #DEBUG2* CARLO
 
         # log frame
         if self._quic_logger is not None:
@@ -1953,7 +1993,8 @@ class QuicConnection:
         Handle a SERVER MIGRATION frame.
         """
 
-        print("PROCESS SERVER MIGRATION") #DEBUG2*
+        now = time.time() #CARLO
+        print("Process SERVER MIGRATION FRAME at: " + str(now)) #DEBUG2* CARLO
 
         #Retrieve and convert new ip address of the server
         data = buf.pull_uint32(4)
@@ -1978,8 +2019,8 @@ class QuicConnection:
             self._network_paths.append(network_path)
 
         #DEBUG V2
-        if self._migration_strategy_fast:
-            self._change_addr_fast = True
+        #if self._migration_strategy_fast:
+            #self._change_addr_fast = True
         #DEBUG V2
 
         self._previous_server_address = context.network_path
@@ -1999,7 +2040,8 @@ class QuicConnection:
         Handle a TRIGGER frame.
         """
 
-        print("PROCESS TRIGGER") #DEBUG2*
+        now = time.time() #CARLO
+        print("Process TRIGGER FRAME at: " + str(now)) #DEBUG2* CARLO
 
         self._server_triggered_to_migrate = True
         
@@ -2323,8 +2365,10 @@ class QuicConnection:
         """
 
         if delivery != QuicDeliveryState.ACKED:
+            print("SERVER MIGRATION FRAME WAS LOST")
             self._server_triggered_to_migrate = True
         else:
+            print("SERVER MIGRATION FRAME WAS ACKNOWLEDGED")
             list_addr_server = self._list_addr_server
             #PERF EV V2 AUTOMATION Client CoAP****
             t1 = Thread(target=clientCoAP, args=(self._migration_type,list_addr_server,))
@@ -2748,10 +2792,11 @@ class QuicConnection:
                 self._write_connection_limits(builder=builder, space=space)
 
                 #DEBUG V2*********************
-                #Type of migration strategy
+                #Type of migration strategy     #Update FAST VERSION
                 if hmstrategy == 1 and not self._migration_strategy_fast:
+                    print("SETTO FLAG MIGRATION STRATEGY FAST")
                     self._migration_strategy_fast = True
-                #DEBUG V2*********************
+                #DEBUG V2*********************  #Update FAST VERSION
 
                 #DEBUG V3*********************
                 if self._is_client and self._n_request_migration == -1 and self._interval_migration == -1 and n_request_migration != 0 and interval_migration != 0:
@@ -3098,7 +3143,8 @@ class QuicConnection:
         )
         buf.push_bytes(challenge)
 
-        print("WRITE PATH CHALLENGE FRAME") #DEBUG*
+        now = time.time() #CARLO
+        print("WRITE PATH CHALLENGE FRAME at: " + str(now)) #DEBUG2* CARLO
 
         # log frame
         if self._quic_logger is not None:
@@ -3114,7 +3160,8 @@ class QuicConnection:
         )
         buf.push_bytes(challenge)
 
-        print("WRITE PATH RESPONSE FRAME") #DEBUG*
+        now = time.time() #CARLO
+        print("WRITE PATH RESPONSE FRAME at: " + str(now)) #DEBUG2* CARLO
 
         # log frame
         if self._quic_logger is not None:
@@ -3125,7 +3172,10 @@ class QuicConnection:
     def _write_ping_frame(
         self, builder: QuicPacketBuilder, uids: List[int] = [], comment=""
     ):
-        #print("WRITE PING FRAME") #DEBUG*
+        
+        now = time.time() #CARLO
+        print("WRITE PING FRAME at: " + str(now)) #DEBUG2* CARLO 
+
         builder.start_frame(
             QuicFrameType.PING,
             capacity=PING_FRAME_CAPACITY,
@@ -3151,7 +3201,8 @@ class QuicConnection:
         self, builder: QuicPacketBuilder
     ):
 
-        print("WRITE SERVER MIGRATION FRAME")
+        now = time.time() #CARLO
+        print("WRITE SERVER MIGRATION FRAME at: " + str(now)) #DEBUG2* CARLO
 
         ip = self._list_addr_server[0]  #"172.16.4.232"     #192.168.178.55 #DEBUG V3*
         ip_int = int(ipaddress.IPv4Address(ip))
@@ -3183,7 +3234,8 @@ class QuicConnection:
     def _write_trigger_frame(
         self, builder: QuicPacketBuilder
     ):
-        print("WRITE TRIGGER FRAME") #DEBUG2*
+        now = time.time() #CARLO
+        print("WRITE TRIGGER FRAME at: " + str(now)) #DEBUG2* CARLO
         
         builder.start_frame(
             QuicFrameType.TRIGGER,

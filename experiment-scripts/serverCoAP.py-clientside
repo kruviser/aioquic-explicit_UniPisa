@@ -1,0 +1,66 @@
+from coapthon.server.coap import CoAP
+from coapthon.exampleresources import BasicResource
+from coapthon.resources.resource import Resource
+import os
+import time
+
+
+def run_command(accesspoint:str) -> None:
+    retry = True
+    try:
+        while retry:
+            os.system("nmcli device wifi rescan")
+            time.sleep(0.1)
+            ret = os.system("nmcli device wifi connect {}".format(accesspoint))
+            if ret == 0:
+                retry = False
+        print("After while loop")
+        if accesspoint == "oem-default-string-2" or accesspoint == "oem-default-string-2 ":
+            #to overcome the temporary problem of dhcp server on AP2
+            print("Inside if")
+            os.system("ifconfig wlx742f6809a73b 192.168.3.76")
+            print("before setting default gateway")
+            os.system("ip route add default via 192.168.3.1")
+    except Exception as e:
+        print("Could not change access point: " +e)
+
+class BasicResource(Resource):
+    def __init__(self, name="BasicResource", coap_server=None):
+        super(BasicResource, self).__init__(name, coap_server, visible=True,observable=True, allow_children=True)
+        self.payload = "Basic Resource"
+
+    def render_GET(self, request):
+        return self
+
+    def render_PUT(self, request):
+        info = request.payload
+        run_command(info)
+        self.payload = "OK"
+        return self
+
+    def render_POST(self, request):
+        res = BasicResource()
+        res.location_query = request.uri_query
+        res.payload = request.payload
+        return res
+
+    def render_DELETE(self, request):
+        return True
+
+
+class CoAPServer(CoAP):
+    def __init__(self, host, port):
+        CoAP.__init__(self, (host, port))
+        self.add_resource('basic/', BasicResource())
+
+def main():
+    server = CoAPServer("0.0.0.0", 5683)
+    try:
+        server.listen(10)
+    except KeyboardInterrupt:
+        print("Server Shutdown")
+        server.close()
+        print("Exiting...")
+
+if __name__ == '__main__':
+    main()

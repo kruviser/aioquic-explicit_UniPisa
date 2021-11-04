@@ -15,7 +15,9 @@ examples/demo.py
 examples/doq_client.py
 examples/doq_server.py
 examples/http3_client.py
-examples/http3_client_v2.py
+examples/http3_client_LucaFastNotWorking.py
+examples/http3_client_beforeLucaModFast.py
+examples/http3_client_beforeReqParinClient.py
 examples/http3_server.py
 examples/httpx_client.py
 examples/interop.py
@@ -48,6 +50,9 @@ src/aioquic/h3/exceptions.py
 src/aioquic/quic/__init__.py
 src/aioquic/quic/configuration.py
 src/aioquic/quic/connection.py
+src/aioquic/quic/connection_FastOldVersion.py
+src/aioquic/quic/connection_LucaFastNotWorking.py
+src/aioquic/quic/connection_beforeLucaModFast.py
 src/aioquic/quic/crypto.py
 src/aioquic/quic/events.py
 src/aioquic/quic/logger.py

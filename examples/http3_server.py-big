@@ -3,6 +3,7 @@ import asyncio
 import importlib
 import logging
 import time
+import os
 import sys
 from collections import deque
 from email.utils import formatdate
@@ -30,6 +31,8 @@ except ImportError:
 AsgiApplication = Callable
 HttpConnection = Union[H0Connection, H3Connection]
 
+MB = 1024*1024
+FOOTPRINT = os.urandom(252*MB)
 SERVER_NAME = "aioquic/" + aioquic.__version__
 
 

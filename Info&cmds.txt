@@ -5,8 +5,8 @@ Per la libreria CoAPthon3 dopo l'installazione sulla vm dove viene lanciato il s
 cp /usr/local/bin/exampleresources.py /usr/local/lib/python3.8/dist-packages/coapthon/
 
 Per il file Migration Information è necessario inserire il path relativo corretto a seconda del punto di esecuzione, tale modifica va fatta:
-- riga 757 connection.py --> f = open("/home/Trigger_v4/src/aioquic/quic/MigrationInformation.txt", "r")
-- riga 442 http3_server.py --> f = open("/home/Trigger_v4/src/aioquic/quic/MigrationInformation.txt", "a") 
+- riga 757 connection.py --> f = open("/home/Trigger/src/aioquic/quic/MigrationInformation.txt", "r")
+- riga 442 http3_server.py --> f = open("/home/Trigger/src/aioquic/quic/MigrationInformation.txt", "a") 
 
 Il server CoAP da lanciare è posizionato al seguente path:
 Aioquic-Triggered-Git/CoAPthon3/serverCoAP.py

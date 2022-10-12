@@ -1,0 +1,11 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\build",
+    "\\src",
+    "\\src\\aioquic",
+    "\\src\\aioquic\\quic"
+  ],
+  "SelectedNode": "\\src\\aioquic\\quic\\connection.py",
+  "PreviewInSolutionExplorer": false
+}
